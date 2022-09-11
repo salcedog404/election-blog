@@ -2,6 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-
 *.Rproj
 *.Rprofile
+.DS_Store
