@@ -1,0 +1,10 @@
+---
+title: Test Post 2
+author: Giovanni Salcedo
+date: '2022-09-13'
+slug: []
+categories: []
+tags: []
+---
+
+Okay wait I think I figured it out
