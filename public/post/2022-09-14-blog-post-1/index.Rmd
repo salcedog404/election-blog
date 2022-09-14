@@ -1,12 +1,10 @@
 ---
-title: Test Post 1
+title: Blog Post 1
 author: Giovanni Salcedo
-date: '2022-09-15'
+date: '2022-09-14'
 slug: []
 categories: []
 tags: []
 ---
 
-
-
-<p>Hello world!</p>
+This is a test.
