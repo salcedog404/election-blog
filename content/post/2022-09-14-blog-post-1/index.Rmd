@@ -1,10 +1,141 @@
 ---
-title: Blog Post 1
+title: Blog Post 1 - Introduction
 author: Giovanni Salcedo
-date: '2022-09-14'
+date: '2022-09-15'
 slug: []
 categories: []
 tags: []
+summary: In the first post of my election blog series, I analyze the two-party congressional voteshare margins for the 2010 and 2014 midterm elections to help determine how incumbent parties usually perform during non-presidential elections.
 ---
 
-This is a test.
+*This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+Welcome to the very first post in my election blog series! My name is Giovanni Salcedo, and I am a senior studying Government on the Data Science track. For my first post, I aim to provide some background on how midterms usually look like for the party in power, which should help provide context for my predictions for the 2022 midterms. In particular, **how do *Democrats* fare in midterm elections when they are the incumbent party?** To address this question, I will analyze the 2010 and 2014 midterm elections, during President Barack Obama's two terms in office.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+# Load packages
+require(tidyverse)
+require(ggplot2)
+require(sf)
+library(rmapshaper)
+library(usmap)
+
+# Load House vote share by district data
+h <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 1/house party vote share by district 1948-2020.csv")
+
+# Load geographic data for 112nd congress (2010)
+get_congress112_map <- function(cong=112) {
+tmp_file <- tempfile()
+tmp_dir <- tempdir()
+zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts112.zip",cong)
+download.file(zp, tmp_file)
+unzip(zipfile = tmp_file, exdir = tmp_dir)
+fpath <- paste(tmp_dir, sprintf("districtShapes/districts112.shp",cong), sep = "/")
+st_read(fpath)
+}
+# Load geographic data for 114th congress (2014)
+get_congress114_map <- function(cong=114) {
+tmp_file <- tempfile()
+tmp_dir <- tempdir()
+zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+download.file(zp, tmp_file)
+unzip(zipfile = tmp_file, exdir = tmp_dir)
+fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+st_read(fpath)
+}
+
+# Load 112nd congress
+cd112 <- get_congress112_map(112)
+# Load 114th congress
+cd114 <- get_congress114_map(114)
+```
+
+```{r q1}
+# Filter for relevant variables
+R_2010 <- h %>%
+  filter(raceYear == 2010) %>%
+  select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
+  # Summarize party vote share by state
+  group_by(State) %>%
+  # Mutate Rep vote margin by state
+  mutate(R_votemargin_st = (sum(RepVotes))/sum(RepVotes + DemVotes),
+         D_votemargin_st = (sum(DemVotes))/sum(RepVotes + DemVotes),
+         R_net_st = R_votemargin_st - D_votemargin_st) %>%
+  rename(state = State)
+
+# Load usmap
+states_map <- usmap::us_map()
+
+# Plot
+plot_usmap(data = R_2010, regions = "states", values = "R_net_st", labels = TRUE) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1",
+                       name = "GOP voteshare margin") +
+  labs(title = "2010 Republican Voteshare Margin by State",
+       subtitle = "Negative values = Positive Democratic voteshare margins") +
+  theme_void()
+```
+
+```{r q2.1}
+# Filter for relevant variables
+R_2014 <- h %>%
+  filter(raceYear == 2014) %>%
+  select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
+  # Summarize party vote share by state
+  group_by(State) %>%
+  # Mutate Rep vote margin by state
+  mutate(R_votemargin_st = (sum(RepVotes))/sum(RepVotes + DemVotes),
+         D_votemargin_st = (sum(DemVotes))/sum(RepVotes + DemVotes),
+         R_net_st = R_votemargin_st - D_votemargin_st) %>%
+  rename(state = State)
+
+# Plot
+plot_usmap(data = R_2014, regions = "states", values = "R_net_st", labels = TRUE) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1",
+                       name = "GOP voteshare margin") +
+  labs(title = "2014 Republican Voteshare Margin by State",
+       subtitle = "Negative values = Positive Democratic voteshare margins") +
+  theme_void()
+```
+
+
+```{r q2.2}
+# Select state and district columns
+cd114 <- cd114 %>%
+  mutate(DISTRICT = as.character(DISTRICT)) %>%
+  select(STATENAME, DISTRICT)
+
+# Filter for relevant variables
+R_2014 <- h %>%
+  filter(raceYear == 2014) %>%
+  select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>% 
+  # Summarize party vote share by district and state
+  group_by(district_num, State) %>%
+ mutate(R_votemargin_st = (sum(RepVotes))/sum(RepVotes + DemVotes),
+         D_votemargin_st = (sum(DemVotes))/sum(RepVotes + DemVotes),
+         R_net_st = R_votemargin_st - D_votemargin_st) %>%
+  # Rename state and district variable names to match shapefile
+  rename(DISTRICT = district_num, STATENAME = State)
+
+# Change DISTRICT class to numeric
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+
+# Join election returns with shapefiles
+cd114 <- cd114 %>% left_join(R_2014, by = c("DISTRICT", "STATENAME"))
+
+# Simplify shapefiles
+cd114 <- ms_simplify(cd114)
+
+# Plot
+ggplot() +
+  geom_sf(data = cd114, aes(fill = R_net_st), inherit.aes=FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1",
+                       name = "GOP voteshare margin") +
+  coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
+  labs(title = "2014 Republican Voteshare Margin by State and Congressional District",
+       subtitle = "Negative values = Positive Democratic voteshare margins") +
+  theme_void() + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                       axis.ticks.x=element_blank(), axis.text.y=element_blank(),
+                       axis.ticks.y=element_blank())
+```
+

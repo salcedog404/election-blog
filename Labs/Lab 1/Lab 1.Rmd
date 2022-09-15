@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = FALSE)
 require(tidyverse)
 require(ggplot2)
 require(sf)
+# set wd
+setwd("~/Documents/R-Projects/election-blog/Labs/Lab 1")
 ```
 
 ```{r}
