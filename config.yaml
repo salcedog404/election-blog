@@ -2,3 +2,8 @@ theme: "tale-hugo"
 baseURL: http://example.org/
 languageCode: en-us
 title: Giovanni's Election Blog
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
