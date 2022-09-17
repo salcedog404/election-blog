@@ -1,5 +1,5 @@
 ---
-title: Blog Post 2
+title: Blog Post 2 - Fundamentals - Economy
 author: Giovanni Salcedo
 date: '2022-09-16'
 slug: []
@@ -14,9 +14,29 @@ summary:
 knitr::opts_chunk$set(echo = FALSE)
 # Load packages
 library(tidyverse)
+library(readr)
+library(lubridate)
+
+# Load data
+# House and seat share by year
+house_dat <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/house_popvote_seats.csv")
+# National unemployment by quarter
+unemployment <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/unemployment_national_quarterly_final.csv")
+# CPI by month
+CPI_monthly<- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/CPI_monthly.csv") %>% 
+  mutate(year = substr(DATE, 1, 4),
+         month = substr(DATE, 6, 7))
+# Change year and month column to numeric
+CPI_monthly$year <- as.numeric(CPI_monthly$year)
+CPI_monthly$month <- as.numeric(CPI_monthly$month)
 ```
 
-```{r}
-
+```{r q1.1}
+## CPI Model
+# Clean and merge
+dat_cpi <- left_join(CPI_monthly, house_dat, by = 'year') %>% 
+  drop_na() %>% 
+  select('year', 'month', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 'CPIAUCSL') %>% 
+  filter(month == 10)
 ```
 
