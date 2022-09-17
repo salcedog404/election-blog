@@ -1,0 +1,21 @@
+---
+title: "Lab 2"
+author: "Giovanni Salcedo"
+date: "2022-09-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Load libraries
+library(tidyverse)
+
+# Set wd
+setwd("~/Documents/R-Projects/election-blog/Labs/Lab 2")
+```
+
+```{r}
+
+```
+

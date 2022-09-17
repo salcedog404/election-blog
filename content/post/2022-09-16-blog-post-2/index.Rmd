@@ -1,0 +1,22 @@
+---
+title: Blog Post 2
+author: Giovanni Salcedo
+date: '2022-09-16'
+slug: []
+categories: []
+tags: []
+summary:
+---
+
+*This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+# Load packages
+library(tidyverse)
+```
+
+```{r}
+
+```
+
