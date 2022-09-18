@@ -12,31 +12,128 @@ summary:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-# Load packages
+## Load packages
 library(tidyverse)
 library(readr)
-library(lubridate)
 
-# Load data
+## Load data
 # House and seat share by year
 house_dat <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/house_popvote_seats.csv")
 # National unemployment by quarter
 unemployment <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/unemployment_national_quarterly_final.csv")
 # CPI by month
-CPI_monthly<- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/CPI_monthly.csv") %>% 
+CPI_monthly <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/CPI_monthly.csv")
+# Create year and month columns based on DATE column
+CPI_monthly2 <- CPI_monthly %>% 
   mutate(year = substr(DATE, 1, 4),
          month = substr(DATE, 6, 7))
-# Change year and month column to numeric
-CPI_monthly$year <- as.numeric(CPI_monthly$year)
-CPI_monthly$month <- as.numeric(CPI_monthly$month)
-```
 
-```{r q1.1}
-## CPI Model
-# Clean and merge
-dat_cpi <- left_join(CPI_monthly, house_dat, by = 'year') %>% 
-  drop_na() %>% 
-  select('year', 'month', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 'CPIAUCSL') %>% 
+## Change year and month column classes to numeric
+CPI_monthly2$year <- as.numeric(CPI_monthly2$year)
+CPI_monthly2$month <- as.numeric(CPI_monthly2$month)
+
+## Calculating average percent change in CPI in last 3 months before election
+CPI_monthly3 <- CPI_monthly2 %>% 
+  filter(month %in% c(8, 9, 10)) %>%
+  # Monthly percent change
+  mutate(cpi_pct_chg = (CPIAUCSL/lag(CPIAUCSL) - 1) * 100) %>%
+  # Average percent change per year between August and October
+  group_by(year) %>% 
+  mutate(avg_pct_chg = mean(cpi_pct_chg)) %>% 
+  # Only need one row per year
   filter(month == 10)
 ```
 
+```{r 1.1}
+## CPI Model
+# Merge and select relevant columns
+dat_cpi <- left_join(CPI_monthly3, house_dat, by = 'year') %>%
+  # Filter for only election years
+  drop_na() %>% 
+  select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 'avg_pct_chg')
+
+## Data for midterm elections only
+# Create identifier column and merge with dataset
+midterm <- rep(0:1, each = 1, length.out = 37)
+midterm <- as.data.frame(midterm)
+dat_cpi['midterm'] <- midterm
+# Create subset with just midterm years
+dat_cpi_mid <- dat_cpi %>% 
+  filter(midterm == 1)
+
+## Linear model - all election years
+lm_cpi_all <- lm(H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi)
+summary(lm_cpi_all)
+## Linear model - midterms only
+lm_cpi_mid <- lm(H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi_mid)
+summary(lm_cpi_mid)
+## Plot - all election years
+ggplot(dat_cpi, aes(avg_pct_chg, H_incumbent_party_majorvote_pct)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x)
+## Plot - midterms only
+ggplot(dat_cpi_mid, aes(avg_pct_chg, H_incumbent_party_majorvote_pct)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x)
+
+## Subset average of most recently available (in the data) three months of this year's CPI
+CPI_2022 <- CPI_monthly2 %>%
+  filter(year == 2022 & month %in% c(3, 4, 5, 6)) %>% 
+  # Monthly percent change
+  mutate(cpi_pct_chg = (CPIAUCSL/lag(CPIAUCSL) - 1) * 100) %>%
+  drop_na() %>% 
+  # Average percent change per year between August and October
+  group_by(year) %>% 
+  mutate(avg_pct_chg = mean(cpi_pct_chg)) %>% 
+  filter(month == 6) %>% 
+  ungroup() %>% 
+  select(avg_pct_chg)
+
+## 2022 predictions
+# All election years
+predict(lm_cpi_all, CPI_2022, interval = "prediction")
+# Midterms only
+predict(lm_cpi_mid, CPI_2022, interval = "prediction")
+```
+
+```{r 1.2}
+## Unemployment Model
+# Merge and select relevant columns
+dat_ue <- left_join(unemployment, house_dat, by = 'year') %>% 
+  drop_na() %>% 
+  select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 'quarter_yr', 'UNRATE') %>%
+  # Filter for unemployment one month before election
+  filter(quarter_yr == 4)
+
+## Data for midterm elections only
+# Merge identifier column with dataset
+dat_ue['midterm'] <- midterm
+# Create subset with just midterm years
+dat_ue_mid <- dat_ue %>% 
+  filter(midterm == 1)
+
+## Linear model - all election years
+lm_ue_all <- lm(H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue)
+## Linear model - midterms only
+lm_ue_mid <- lm(H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue_mid)
+
+## Plot - all election years
+ggplot(dat_ue, aes(UNRATE, H_incumbent_party_majorvote_pct)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x)
+## Plot - midterms only
+ggplot(dat_ue_mid, aes(UNRATE, H_incumbent_party_majorvote_pct)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x)
+
+## Subset most recent unemployment data (April 2022)
+ue_2022 <- unemployment %>% 
+  filter(year_qt == "2022_2") %>% 
+  select(UNRATE)
+
+## 2022 predictions
+# All election years
+predict(lm_ue_all, ue_2022, interval= "prediction")
+# Midterms only
+predict(lm_ue_mid, ue_2022, interval= "prediction")
+```
