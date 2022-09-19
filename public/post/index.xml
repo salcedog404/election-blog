@@ -6,7 +6,16 @@
     <description>Recent content in Posts on Giovanni&#39;s Election Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 15 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 16 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blog Post 2 - Fundamentals - Economy</title>
+      <link>http://example.org/post/2022-09-16-blog-post-2/</link>
+      <pubDate>Fri, 16 Sep 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-09-16-blog-post-2/</guid>
+      <description>Summary</description>
+    </item>
+    
     <item>
       <title>Blog Post 1 - Introduction</title>
       <link>http://example.org/post/2022-09-14-blog-post-1/</link>

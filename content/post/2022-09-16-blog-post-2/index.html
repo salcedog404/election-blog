@@ -1,0 +1,95 @@
+---
+title: Blog Post 2 - Fundamentals - Economy
+author: Giovanni Salcedo
+date: '2022-09-16'
+slug: []
+categories: []
+tags: []
+summary: Summary
+---
+
+
+
+<p><em>This blog is part of a series for Gov 1347: Election Analytics, a course at <a href="https://www.harvard.edu/">Harvard University</a> taught by Professor <a href="http://ryandenos.com/">Ryan D. Enos</a></em>.</p>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -6.1698 -1.8428  0.5215  1.9642  6.3997 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  50.4087     0.8689  58.017   &lt;2e-16 ***
+## avg_pct_chg   1.1531     0.5837   1.975   0.0562 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.235 on 35 degrees of freedom
+## Multiple R-squared:  0.1003, Adjusted R-squared:  0.0746 
+## F-statistic: 3.902 on 1 and 35 DF,  p-value: 0.05615</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi_mid)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.1720 -2.7564 -0.1064  2.7119  5.0698 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  48.9661     1.2025  40.721   &lt;2e-16 ***
+## avg_pct_chg   2.2185     0.7963   2.786   0.0132 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.35 on 16 degrees of freedom
+## Multiple R-squared:  0.3267, Adjusted R-squared:  0.2846 
+## F-statistic: 7.762 on 1 and 16 DF,  p-value: 0.01322</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/1.1-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/1.1-2.png" width="672" /></p>
+<pre><code>##        fit      lwr      upr
+## 1 51.41881 44.75373 58.08389</code></pre>
+<pre><code>##        fit  lwr      upr
+## 1 50.90953 43.6 58.21905</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -7.9681 -1.4497  0.6175  2.3157  6.6103 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  47.4800     1.9400  24.475   &lt;2e-16 ***
+## UNRATE        0.7466     0.3254   2.294   0.0279 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.18 on 35 degrees of freedom
+## Multiple R-squared:  0.1307, Adjusted R-squared:  0.1059 
+## F-statistic: 5.263 on 1 and 35 DF,  p-value: 0.0279</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue_mid)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -7.589 -3.481  1.106  2.784  6.978 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  47.1317     3.2914  14.320 1.53e-10 ***
+## UNRATE        0.7434     0.5392   1.379    0.187    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.86 on 16 degrees of freedom
+## Multiple R-squared:  0.1062, Adjusted R-squared:  0.05032 
+## F-statistic: 1.901 on 1 and 16 DF,  p-value: 0.187</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/1.2-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/1.2-2.png" width="672" /></p>
+<pre><code>##       fit      lwr      upr
+## 1 50.1678 43.47461 56.86099</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 49.80783 41.01161 58.60405</code></pre>
