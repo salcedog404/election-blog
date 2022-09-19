@@ -5,91 +5,37 @@ date: '2022-09-16'
 slug: []
 categories: []
 tags: []
-summary: Summary
+summary: In this post, I build two predictive models using consumer price index (CPI) and unemployment numbers as predictors for the 2022 midterms, and I compare the two models and analyze their predictive power.
 ---
 
 
 
 <p><em>This blog is part of a series for Gov 1347: Election Analytics, a course at <a href="https://www.harvard.edu/">Harvard University</a> taught by Professor <a href="http://ryandenos.com/">Ryan D. Enos</a></em>.</p>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -6.1698 -1.8428  0.5215  1.9642  6.3997 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  50.4087     0.8689  58.017   &lt;2e-16 ***
-## avg_pct_chg   1.1531     0.5837   1.975   0.0562 .  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.235 on 35 degrees of freedom
-## Multiple R-squared:  0.1003, Adjusted R-squared:  0.0746 
-## F-statistic: 3.902 on 1 and 35 DF,  p-value: 0.05615</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi_mid)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -5.1720 -2.7564 -0.1064  2.7119  5.0698 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  48.9661     1.2025  40.721   &lt;2e-16 ***
-## avg_pct_chg   2.2185     0.7963   2.786   0.0132 *  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.35 on 16 degrees of freedom
-## Multiple R-squared:  0.3267, Adjusted R-squared:  0.2846 
-## F-statistic: 7.762 on 1 and 16 DF,  p-value: 0.01322</code></pre>
+<p>Economic conditions have been a key issue for the upcoming midterm elections. In fact, <a href="https://news.gallup.com/poll/1675/most-important-problem.aspx">as of July 2022</a>, 35 percent of Americans mentioned the economy as their most important issue, according to Gallup. Thus, it would make sense that the state of the economy would significantly impact how people vote.</p>
+<p>But is it enough to just look at economic factors? In this post, I want to compare a few predictive models for the 2022 midterms that I built that incorporate a few economic variables often cited in the media. For each model, I also wanted to compare their performance when analyzing both presidential and midterm elections versus just midterm elections to see if there is a difference between the two types of elections for how important the economy is as a voting issue.</p>
+<p><strong>CPI Model</strong></p>
+<p>The first model’s independent variable is the average % change in CPI (consumer price index), which is also a measure of how quickly prices are rising, in the last 3 months before the election. My dependent variable is the popular vote for the incumbent party at the time of the election. I isolate my data to the last 3 months because according to the economic theory of voting, people should vote based on the state of the economy at the time of the election. If that’s true, the most recent economic data to the election should be what matters in people’s minds as they head to the polls.</p>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/1.1-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/1.1-2.png" width="672" /></p>
+<p>Above are the graphs for the linear models. The top one includes all election years, while the bottom one only includes midterm election years. Based on the p-values and the higher adjusted R-squared value, the midterm model is the only statistically significant model and is a better fit for the data.</p>
+<p><strong>CPI Model’s 2022 Predictions</strong></p>
+<p>All election years</p>
 <pre><code>##        fit      lwr      upr
 ## 1 51.41881 44.75373 58.08389</code></pre>
+<p>Midterms only</p>
 <pre><code>##        fit  lwr      upr
 ## 1 50.90953 43.6 58.21905</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -7.9681 -1.4497  0.6175  2.3157  6.6103 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  47.4800     1.9400  24.475   &lt;2e-16 ***
-## UNRATE        0.7466     0.3254   2.294   0.0279 *  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.18 on 35 degrees of freedom
-## Multiple R-squared:  0.1307, Adjusted R-squared:  0.1059 
-## F-statistic: 5.263 on 1 and 35 DF,  p-value: 0.0279</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue_mid)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -7.589 -3.481  1.106  2.784  6.978 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  47.1317     3.2914  14.320 1.53e-10 ***
-## UNRATE        0.7434     0.5392   1.379    0.187    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 3.86 on 16 degrees of freedom
-## Multiple R-squared:  0.1062, Adjusted R-squared:  0.05032 
-## F-statistic: 1.901 on 1 and 16 DF,  p-value: 0.187</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/1.2-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/1.2-2.png" width="672" /></p>
+<p>After subsetting the most recently available CPI data for this year and using both models to predict what the incumbent party’s popular vote share would be, the above numbers are the results. Both models predict similar vote shares - the incumbent party - Democrats - will win just above a majority of the popular vote this election. However, both predictions have wide upper and lower bounds, which still suggests that these models may not be robust enough to precisely predict the election.</p>
+<p><strong>Unemployment Model</strong></p>
+<p>The second model’s independent variable is the unemployment rate one month before the election. The dependent variable is the same as the previous model - the incumbent party’s popular vote share at the time of the election. In this case, the “all election years” model is statistically significant as the p-value is less than or equal to 0.05, and the adjusted R-squared is higher than the midterm model. Similar to the first model, I use the last month of unemployment data since it is what people will be experiencing at the time of the election.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/1.4-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/1.4-2.png" width="672" /></p>
+<p><strong>Unemployment Model’s 2022 Predictions</strong></p>
+<p>All election years</p>
 <pre><code>##       fit      lwr      upr
 ## 1 50.1678 43.47461 56.86099</code></pre>
+<p>Midterms only</p>
 <pre><code>##        fit      lwr      upr
 ## 1 49.80783 41.01161 58.60405</code></pre>
+<p>Above are this model’s predictions for the 2022 midterms. Again, both models have similar predictions for Democrats’ popular vote, though the midterms model predicts just under an actual majority for the party. The upper and lower bounds for these predictions are once again wide, which means there is a lot of room for error with these predictions.</p>
+<p><strong>Limitations of fundamentals models</strong></p>
+<p>Why are these models not the most ideal for predicting the election? Firstly, these models each only incorporate one aspect of the economy; in reality, people might consider more than one economic variable as they vote. In addition, these models don’t account for other variables outside of economic conditions that could more accurately predict the election. Regardless, focusing on just the economy for predicting the election will likely not yield accurate results - the economy is just one of many factors that influences votes.</p>
+<p>As inflation continues, I would expect that to work against the Democrats this November. However, issues like the overturning of Roe v. Wade throw a wrench into the conventional wisdom, giving Democrats more of a shot to perform better than expected, especially in the Senate.</p>

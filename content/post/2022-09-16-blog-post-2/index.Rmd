@@ -5,10 +5,18 @@ date: '2022-09-16'
 slug: []
 categories: []
 tags: []
-summary: Summary
+summary: In this post, I build two predictive models using consumer price index (CPI) and unemployment numbers as predictors for the 2022 midterms, and I compare the two models and analyze their predictive power.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+Economic conditions have been a key issue for the upcoming midterm elections. In fact, [as of July 2022](https://news.gallup.com/poll/1675/most-important-problem.aspx), 35 percent of Americans mentioned the economy as their most important issue, according to Gallup. Thus, it would make sense that the state of the economy would significantly impact how people vote.
+
+But is it enough to just look at economic factors? In this post, I want to compare a few predictive models for the 2022 midterms that I built that incorporate a few economic variables often cited in the media. For each model, I also wanted to compare their performance when analyzing both presidential and midterm elections versus just midterm elections to see if there is a difference between the two types of elections for how important the economy is as a voting issue.
+
+**CPI Model**
+
+The first model's independent variable is the average % change in CPI (consumer price index), which is also a measure of how quickly prices are rising, in the last 3 months before the election. My dependent variable is the popular vote for the incumbent party at the time of the election. I isolate my data to the last 3 months because according to the economic theory of voting, people should vote based on the state of the economy at the time of the election. If that's true, the most recent economic data to the election should be what matters in people's minds as they head to the polls.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -63,18 +71,29 @@ dat_cpi_mid <- dat_cpi %>%
 
 ## Linear model - all election years
 lm_cpi_all <- lm(H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi)
-summary(lm_cpi_all)
 ## Linear model - midterms only
 lm_cpi_mid <- lm(H_incumbent_party_majorvote_pct ~ avg_pct_chg, data = dat_cpi_mid)
-summary(lm_cpi_mid)
+
 ## Plot - all election years
-ggplot(dat_cpi, aes(avg_pct_chg, H_incumbent_party_majorvote_pct)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x)
+ggplot(dat_cpi, aes(avg_pct_chg, H_incumbent_party_majorvote_pct,
+                    label = year)) +
+  geom_text() +
+  geom_smooth(method = "lm", formula = y ~ x) +
+  labs(title = "Y = 48.9661 + 2.2185*X",
+       subtitle = "P ≤ 0.1, Adjusted R-squared = 0.0746",
+       x = "Average % change in CPI, last 3 months before election",
+       y = "Incumbent party PV") +
+  theme_bw()
 ## Plot - midterms only
-ggplot(dat_cpi_mid, aes(avg_pct_chg, H_incumbent_party_majorvote_pct)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x)
+ggplot(dat_cpi_mid, aes(avg_pct_chg, H_incumbent_party_majorvote_pct,
+                        label = year)) +
+  geom_text(color = "firebrick") +
+  geom_smooth(method = "lm", formula = y ~ x) +
+  labs(title = "Y = 50.4087 + 1.1531*X",
+       subtitle = "P ≤ 0.05, Adjusted R-squared = 0.2846",
+       x = "Average % change in CPI, last 3 months before election",
+       y = "Incumbent party PV") +
+  theme_bw()
 
 ## Subset average of most recently available (in the data) three months of this year's CPI
 CPI_2022 <- CPI_monthly2 %>%
@@ -88,15 +107,33 @@ CPI_2022 <- CPI_monthly2 %>%
   filter(month == 6) %>% 
   ungroup() %>% 
   select(avg_pct_chg)
+```
 
-## 2022 predictions
+Above are the graphs for the linear models. The top one includes all election years, while the bottom one only includes midterm election years. Based on the p-values and the higher adjusted R-squared value, the midterm model is the only statistically significant model and is a better fit for the data.
+
+**CPI Model's 2022 Predictions**
+
+All election years
+
+```{r 1.2}
 # All election years
 predict(lm_cpi_all, CPI_2022, interval = "prediction")
+```
+
+Midterms only
+
+```{r 1.3}
 # Midterms only
 predict(lm_cpi_mid, CPI_2022, interval = "prediction")
 ```
 
-```{r 1.2}
+After subsetting the most recently available CPI data for this year and using both models to predict what the incumbent party's popular vote share would be, the above numbers are the results. Both models predict similar vote shares - the incumbent party - Democrats - will win just above a majority of the popular vote this election. However, both predictions have wide upper and lower bounds, which still suggests that these models may not be robust enough to precisely predict the election.
+
+**Unemployment Model**
+
+The second model's independent variable is the unemployment rate one month before the election. The dependent variable is the same as the previous model - the incumbent party's popular vote share at the time of the election. In this case, the "all election years" model is statistically significant as the p-value is less than or equal to 0.05, and the adjusted R-squared is higher than the midterm model. Similar to the first model, I use the last month of unemployment data since it is what people will be experiencing at the time of the election.
+
+```{r 1.4}
 ## Unemployment Model
 # Merge and select relevant columns
 dat_ue <- left_join(unemployment, house_dat, by = 'year') %>% 
@@ -114,28 +151,57 @@ dat_ue_mid <- dat_ue %>%
 
 ## Linear model - all election years
 lm_ue_all <- lm(H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue)
-summary(lm_ue_all)
 ## Linear model - midterms only
 lm_ue_mid <- lm(H_incumbent_party_majorvote_pct ~ UNRATE, data = dat_ue_mid)
-summary(lm_ue_mid)
 
 ## Plot - all election years
-ggplot(dat_ue, aes(UNRATE, H_incumbent_party_majorvote_pct)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x)
+ggplot(dat_ue, aes(UNRATE, H_incumbent_party_majorvote_pct,
+                   label = year)) +
+  geom_text() +
+  geom_smooth(method = "lm", formula = y ~ x, color = "darkorchid") +
+  labs(title = "Y = 47.4800 + 0.7466*X",
+       subtitle = "P ≤ 0.05, Adjusted R-squared = 0.1059",
+       x = "Unemployment rate 1 month before election",
+       y = "Incumbent party PV") +
+  theme_bw()
 ## Plot - midterms only
-ggplot(dat_ue_mid, aes(UNRATE, H_incumbent_party_majorvote_pct)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x)
+ggplot(dat_ue_mid, aes(UNRATE, H_incumbent_party_majorvote_pct,
+                       label = year)) +
+  geom_text(color = "firebrick") +
+  geom_smooth(method = "lm", formula = y ~ x, color = "darkorchid") +
+  labs(title = "Y = 47.1317 + 0.7434*X",
+       subtitle = "P ≤ 0.1, Adjusted R-squared = 0.05032",
+       x = "Unemployment rate 1 month before election",
+       y = "Incumbent party PV") +
+  theme_bw()
 
 ## Subset most recent unemployment data (April 2022)
 ue_2022 <- unemployment %>% 
   filter(year_qt == "2022_2") %>% 
   select(UNRATE)
+```
 
-## 2022 predictions
+**Unemployment Model's 2022 Predictions**
+
+All election years
+
+```{r 1.5}
 # All election years
 predict(lm_ue_all, ue_2022, interval= "prediction")
+```
+
+Midterms only
+
+```{r 1.6}
 # Midterms only
 predict(lm_ue_mid, ue_2022, interval= "prediction")
 ```
+
+
+Above are this model's predictions for the 2022 midterms. Again, both models have similar predictions for Democrats' popular vote, though the midterms model predicts just under an actual majority for the party. The upper and lower bounds for these predictions are once again wide, which means there is a lot of room for error with these predictions.
+
+**Limitations of fundamentals models**
+
+Why are these models not the most ideal for predicting the election? Firstly, these models each only incorporate one aspect of the economy; in reality, people might consider more than one economic variable as they vote. In addition, these models don't account for other variables outside of economic conditions that could more accurately predict the election. Regardless, focusing on just the economy for predicting the election will likely not yield accurate results - the economy is just one of many factors that influences votes.
+
+As inflation continues, I would expect that to work against the Democrats this November. However, issues like the overturning of Roe v. Wade throw a wrench into the conventional wisdom, giving Democrats more of a shot to perform better than expected, especially in the Senate.
