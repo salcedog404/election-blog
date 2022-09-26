@@ -65,7 +65,92 @@
 
 
 <p><em>This blog is part of a series for Gov 1347: Election Analytics, a course at <a href="https://www.harvard.edu/">Harvard University</a> taught by Professor <a href="http://ryandenos.com/">Ryan D. Enos</a></em>.</p>
-<p>This is a placeholder.</p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This week, we took a look at the role that polling plays in election forecasting. Polls of all kinds are conducted weeks, months, or even years before an election, but as we can see in <a href="https://projects.fivethirtyeight.com/polls/generic-ballot/2022/">this graph</a> of FiveThirtyEight’s aggregation of generic ballot polls for the 2022 midterms, polls are much more frequently conducted as election day gets closer.</p>
+<p>As Gelman and King (1993) argue, the preferences of voters reported in polls throughout the campaign are not “informed” nor “rational,” with voters instead making a decision on who to vote for based on their “enlightened preferences” formed throughout the campaign and other cues like ideology and party identification. Thus, when updating last week’s models that only incorporated economic variables - CPI and unemployment - it will be interesting to see whether fundamentals alone or polls combined with fundamentals will be more predictive of this election.</p>
+</div>
+<div id="what-do-forecasters-do" class="section level1">
+<h1>What Do Forecasters Do?</h1>
+<p>Before I begin tinkering with my model, I want to compare and contrast two well-known election forecasters and their approaches to modeling the election.</p>
+<p>FiveThirtyEight’s model, created by Nate Silver, has a <a href="https://fivethirtyeight.com/methodology/how-fivethirtyeights-house-and-senate-models-work/">very detailed methodology page.</a> In summary, their model takes in as many local polls as possible, making different kinds of adjustments to them and incorporating the fundamentals to produce forecasts for each race after thousands of simulations. Their model is split into three versions: a “lite” model that only incorporates adjusted district-by-district polls and CANTOR (a system that infers polls in districts with little to no actual polling); a “classic” model that combines the lite model with fundamentals, non-polling factors like fundraising and past election results; and a “deluxe” model that combines the classic model with the race ratings by “experts”, namely the Cook Political Report, Inside Elections, and Sabato’s Crystall Ball. FiveThirtyEight uses an algorithm to weigh polls based on their sample size, their recency, and the pollster rating, with an emphasis on having a diversity of polls. They do note that their House model, unlike their Senate and governor models, is less polling-centric since polling for House races is more sporadic and potentially unreliable, making fundamentals a more significant factor where House polling is sparse.</p>
+<p>The <a href="https://www.economist.com/interactive/us-midterms-2022/forecast/house/how-this-works">Economist’s model</a> seems to weigh polling somwehat more, though it still most definitely takes fundamentals and other factors into account. The model first tries to predict a range of outcomes for the national House popular vote, using generic ballot polls (which FiveThirtyEight use more as adjustments for local polls), presidential approval ratings, the average results of special elections held to fill vacant legislative seats, and the number of days left until the election. The model then tries to measure each district’s partisan lean, incorporating more fundamentals and interestingly, an adjustment for political polarization. Finally, the model incorporates local polling, adjusting polls as needed, and simulates the election tens of thousands of times, coming up with a final prediction.</p>
+<p>Which model do I prefer? In my opinion, both models are very well-thought out, but I prefer FiveThirtyEight’s model somewhat more. I like that their model is set up into three versions, which help give readers an idea of the individual impact of polls and fundamentals as well as the wisdom of respected expert forecasters. I also prefer how their model is probabilistic, which means they are not forgetting about all the uncertainty that comes with these elections!</p>
+</div>
+<div id="updating-my-model" class="section level1">
+<h1>Updating My Model</h1>
+<p>Last week, my models based on economic variables did not perform too well. For the comparison against polling, one change I would like to make is combining CPI and unemployment into one “economic fundamentals” model that will ideally perform better than each variable individually. Last week, I also experimented with leaving out presidential election years, but for this post, I will be considering all election years.</p>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg + 
+##     UNRATE, data = dat_fun)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -6.9172 -0.9947  0.3410  2.0728  6.7196 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  46.6965     1.9310  24.183   &lt;2e-16 ***
+## avg_pct_chg   1.0069     0.5606   1.796   0.0813 .  
+## UNRATE        0.6766     0.3180   2.128   0.0407 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.083 on 34 degrees of freedom
+## Multiple R-squared:  0.2061, Adjusted R-squared:  0.1594 
+## F-statistic: 4.412 on 2 and 34 DF,  p-value: 0.01979</code></pre>
+<p>Above is a quick summary of my new fundamentals-only model. In this model, the unemployment rate one month before the election (but not the average percent change in CPI in the last 3 months before the election) appears to have a statistically significant positive effect on the house incumbent party voteshare.</p>
+<pre><code>## [1] 2.955645</code></pre>
+<p>In terms of in-sample fit, the above number represents the mean squared error, which on its own does not mean much, but we will use it to this model to the other models. The adjusted R-squared is 0.1594, which is better than most of my models from last week, but it is still relatively low.</p>
+<pre><code>## 
+## Call:
+## lm(formula = H_incumbent_party_majorvote_pct ~ avg_pct_chg + 
+##     UNRATE + avg_support, data = dat_poll_fun)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -7.2833 -2.8399  0.0531  1.9505  8.0226 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 40.62411    0.81469   49.87  &lt; 2e-16 ***
+## avg_pct_chg  2.48015    0.09932   24.97  &lt; 2e-16 ***
+## UNRATE       0.48912    0.03496   13.99  &lt; 2e-16 ***
+## avg_support  0.08637    0.01671    5.17 2.57e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 2.792 on 2106 degrees of freedom
+## Multiple R-squared:  0.2872, Adjusted R-squared:  0.2862 
+## F-statistic: 282.9 on 3 and 2106 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Above is a quick summary of the combined polls and fundamentals model. All of the variables are statistically significant!</p>
+<pre><code>## Warning in lm_poll_fun$model$H_incumbent_party_majorvote_pct -
+## lm_fun$fitted.values: longer object length is not a multiple of shorter object
+## length</code></pre>
+<pre><code>## [1] 4.344127</code></pre>
+<p>The mean squared error is higher for this model, but based on the warning message, this may not be an accurate measure of in-sample fit. The adjusted R-squared for this model is 0.2833, which is significantly higher than the other model’s value of 0.1594, making this model have a better in-sample fit.</p>
+</div>
+<div id="comparing-models" class="section level1">
+<h1>Comparing Models</h1>
+<p><img src="http://example.org/post/2022-09-26-blog-post-3-polling/index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="http://example.org/post/2022-09-26-blog-post-3-polling/index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>The above are predicted vs. observed incumbent party voteshares for each of my models. Although neither are necessarily good fits for the data, both models, particularly the polls + fundamentals models, are an improvement over last week’s models!</p>
+</div>
+<div id="predictions" class="section level1">
+<h1>2022 Predictions</h1>
+<p>Fundamentals-only</p>
+<pre><code>##        fit      lwr      upr
+## 1 50.01443 43.51534 56.51353</code></pre>
+<p>Polls + Fundamentals</p>
+<pre><code>##        fit      lwr      upr
+## 1 48.24779 42.76806 53.72752</code></pre>
+<p>Above are the predictions each model has made for the incumbent party voteshare for the 2022 midterms. The fundamentals-only model predicts Democrats will win about 50.01% of the vote, while the polls + fundamentals model suggests Democrats will fall short of winning the majority of the popular vote with about 48.25% of the vote. The latter model presents the most pessimistic outcome for Democrats out of all of my models so far. Next week, I am interested to see if and how this will change.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<p>Gelman, A., &amp; King, G. (1993). Why Are American Presidential Election Campaign Polls So Variable When Votes Are So Predictable? British Journal of Political Science, 23(4), 409-451. <a href="doi:10.1017/S0007123400006682" class="uri">doi:10.1017/S0007123400006682</a></p>
+</div>
 
 
 		
@@ -82,7 +167,7 @@
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-26 02:19:38.686872 -0400 EDT m=&#43;0.025656876">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-26 11:33:38.955791 -0400 EDT m=&#43;0.082579210">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
