@@ -1,0 +1,485 @@
+---
+title: "Polling"
+author: "Kiara Hernandez"
+date: \today
+output:
+  beamer_presentation:
+    highlight: zenburn
+    incremental: no
+    keep_tex: yes
+    latex_engine: pdflatex
+    slide_level: 2
+    theme: metropolis
+  slidy_presentation:
+    highlight: zenburn
+    incremental: no
+classoption: "handout"
+institute: Harvard University
+header-includes: \setbeamercolor{frametitle}{bg=purple} \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+subtitle: 'Gov 1347: Election Analytics'
+fontsize: 10pt
+---
+<!-- 
+to make handout, add 
+classoption: "handout"
+to header
+-->
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+# But first, a review of 3 crucial concepts
+ 
+## Multivariate (multiple) regression
+
+Univariate regression $(\underbrace{Y}_{PV}=\alpha + \beta \underbrace{X_{1}}_{GDP})$ \pause $\rightsquigarrow$ \newline
+\textbf{multivariate regression} $(\underbrace{Y}_{PV}=\alpha + \beta_1 \underbrace{X_1}_{GDP} + \beta_2 \underbrace{X_2}_{approval})$ \pause
+
+  * assumption: \underline{linear additivity} between IVs ($\beta_1 X_1 + \beta_2 X_2$) \pause
+  * estimation: same \underline{OLS} procedure (minimizing the sum of squared errors) \pause
+  * better in-sample fit metric: $\underline{R^2_{adjusted}} = 1 - \frac{(1-R^2)(n-1)}{n - p - 1}$ for $p$ IVs \pause
+  * adding new IVs will \underline{change parameter estimates} \pause
+      - Intuitively, $\beta_1$ is the `unique` effect of $X_1$
+      - only two rare cases where $\hat{\beta} = \hat{\beta_1}$: \pause
+          1. $\beta_2 = 0$
+          2. $r_{X_1,X_2} = 0$
+      - signs and magnitudes of correction $\hat{\beta_2}$ and $r_{X_1,X_2}$ $\rightsquigarrow$ signs and magnitudes of correction $\hat{\beta_1} - \hat{\beta}$
+      
+<!--  * adding a highly \textbf{multicollinear} variable ($r_{X_1,X_2} > 0.7$) is redundant and reduces model interpretability -->
+
+## Interactions of IVs
+
+\pause
+Sociopolitical outcomes (DVs) are often predicted by \textbf{interactions} of IVs: \pause
+
+  * intersectionality: (\texttt{race x gender})
+    - black women face more discrimination than black men and white women do combined \pause
+    - the effect of $X_1$ (race) can vary depending on the value of $X_2$ (gender) \pause
+    
+  * extension 2:
+    - (\texttt{incumbent party x economic performance})
+    - (\texttt{year x economic performance}) \pause
+  
+  * extension 3: (\texttt{party x unemployment})
+    - in state $s$, incumbent party benefits if Dem, hurt if Rep \pause \textcolor{red}{(why?)} \pause
+
+## Overfitting
+
+\begin{quote}
+A common criticism of fundamentals models is that they are extremely easy to \textbf{over-fit}—the statistical term for deriving equations that provide a close match to historical data, but break down when used to predict the future. To avoid this risk, we borrow two techniques from the world of machine learning, with appropriately inscrutable names: elastic-net regularisation$^{\star \star}$ and \textbf{leave-one-out cross-validation}.
+\end{quote}
+[(Morris 2020a)](https://projects.economist.com/us-2020-forecast/house)
+
+\pause
+
+Explicit tension between \textbf{in-sample fit} ("close match to historical data") and \textbf{out-of-sample performance}:
+
+  * Cross-validation
+  * Elastic-net regularisation: Parsimony of a model$^{\star \star}$ reduces out-of-sample error
+  * \underline{Bottom-line}: an $R^2 > 0.9$ might actually be \underline{bad} for prediction!
+
+## Today's agenda
+
+> **Can we predict election outcomes using polling data?**  \pause
+
+1. **A brief overview of polls and pollsters** 
+    * How do polls work?
+    * Pros and cons \pause
+2. **Quantitatively describing the polls:**
+    * How do polls \underline{fluctuate} across state, time, and year?
+    * How early can the polls predict election results? \pause
+3. **Improve our 2020 forecast using polling data**
+    * How to resolve with fundamentals model(s) from last week?
+
+
+# Polls and Pollsters
+
+## Pollsters {.build}
+
+**What do they do?** \pause
+<!-- Q: ask them about each step involved -->
+
+Organizations that conduct public opinion research by:  \pause
+
+  1. Designing a questionnaire \pause <!-- Q -->
+     * vote choice
+     * generic ballot
+     * presidential approval
+  2. Contacting a sample \textcolor{red}{(often opaque)} \pause <!-- Q -->
+     * phone vs. internet
+     * random vs. non-random
+  3. Ask repeatedly over time \pause
+     * panel (rare)
+     * cross-section
+  4. Weight responses to ``look like population'' \textcolor{red}{(often opaque)} \pause
+     * choice of variables
+     * choice of models
+  5. Interpret and report \pause
+
+## Some pollsters you might know
+
+\begin{figure}
+\includegraphics[width=0.98\textwidth]{pollsters.png}
+\end{figure}
+
+\tiny
+
+*Live (live telephone interview, including cells), Live\* (not including cells), Online (internet, text, app), IVR (interactive voice response)*
+
+<!--See the definition tab of [FiveThirtyeight](https://projects.fivethirtyeight.com/pollster-ratings/) if needed-->
+
+## Why shouldn't we trust the polls? {.build}
+
+\pause
+
+  * Non-response \pause
+     - Ex: In 2016, ``less-educated'' whites systematically opted out of polls \pause
+     - Ex: Convention bounce, enthusiasm gap \pause
+  * Respondent dishonesty \pause
+     - 23\% of the Harvard-hosted CES (CCES) takers lied about voting! \pause
+  * Respondent confusion \pause
+     - "Do you [\textcolor{purple}{support President Bush’s} / \textcolor{brown}{favor or oppose}] decision sending additional troops to Iraq?"
+  * Reponses not weighted ``correctly''  \pause
+     - [NYT: In 2016, four professional pollsters independently weighted a Florida poll. Only one predicted Trump would win (+1%). ](https://www.nytimes.com/interactive/2016/09/20/upshot/the-error-the-polling-world-rarely-talks-about.html) \pause
+  * Polls misinterpreted by pundits, commentators, voters (``madness of crowds'')
+
+## Why should we trust the polls? {.build}
+<!-- Q: ask the students this -->
+\pause
+
+  * Wisdom of crowds (Galton 1907)
+  * Wisdom of \textit{aggregators} of crowds
+      - Ex: FiveThirtyEight, Real Clear Politics, The Economist
+  * Can adjust averages across time and across polls (Silver 2016) # update this?
+  * Interpretation of vote-choice polls is straight-forward
+  * Predicts past elections \pause \textcolor{red}{(how well, though?)}
+  
+
+# Describing the relationship between polls and election outcomes
+
+## How do polls fluctuate across time? {.build}
+
+Let's visualize poll averages by party from the most recent midterm election: \pause
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+setwd("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Polling/Section data")
+poll_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Polling/Section data/polls_df.csv") # replace with your own wd() 
+# transform poll date to date class
+poll_df$poll_date <- as.Date(poll_df$poll_date, format = "%m/%d/%Y")
+```
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+poll_df <- read_csv("polls_df.csv")
+```
+
+```{r, echo=TRUE, eval=FALSE}
+poll_df %>%
+```
+\pause
+```{r, echo=TRUE, eval=FALSE}
+  filter(year == 2018) %>%
+```
+\pause
+```{r, echo=TRUE, eval=FALSE}
+  ggplot(aes(x = poll_date, y = support, color = party)) +
+
+```
+\pause
+```{r, echo=TRUE, eval=FALSE}
+    geom_point(size = 1) +
+    geom_line() +
+```
+\pause
+```{r, echo=TRUE, eval=FALSE}
+    scale_x_date(date_labels = "%b, %Y") +
+    scale_color_manual(values = c("blue","red"), name = "") +
+    ylab("polling approval average on date") + xlab("") +
+    theme_bw()
+```
+
+## How do polls fluctuate across time? {.build}
+
+\textbf{Poll averages in 2016:}
+
+```{r, echo=FALSE, eval=TRUE}
+# use avg of polls on same day
+poll_df <- poll_df %>%
+  group_by(poll_date, party) %>%
+  mutate(avg_support = mean(support)) %>%
+# keep only unique dates
+  distinct(year, poll_date, avg_support, party)
+
+
+poll_df %>%
+  filter(year == 2018) %>%
+  ggplot(aes(x = poll_date, y = avg_support,
+             colour = party)) +
+    geom_point(size = 0.3) +
+    geom_line(size = 0.3) +
+    scale_x_date(date_labels = "%b, %Y") +
+    scale_color_manual(values = c("blue","red"), name = "") +
+    ylab("generic ballot support") + xlab("") +
+    theme_classic()
+```
+
+## How do polls fluctuate across time? {.build}
+
+\textbf{What events were ``game-changers'' in 2018?}
+
+```{r, echo=FALSE, eval=TRUE}
+poll_df %>%
+  filter(year == 2018) %>%
+  ggplot(aes(x = poll_date, y = avg_support,
+             colour = party)) +
+  geom_point(size = 0.3) +
+    geom_line(size = 0.3) +
+  
+    geom_segment(x=as.Date("2018-07-16"), xend=as.Date("2018-07-16"),y=0,yend=37, lty=2, color="grey", alpha=0.4) +
+    annotate("text", x=as.Date("2018-07-16"), y=33, label="Trump meets with \nPutin in Helsinki", size=3) +
+
+    geom_segment(x=as.Date("2018-10-06"), xend=as.Date("2018-10-06"),y=44,yend=100, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-10-06"), y=53, label="Kavanaugh nom to \nSupreme Court", size=3) +
+  
+  geom_segment(x=as.Date("2018-06-26"), xend=as.Date("2018-06-26"),y=43,yend=100, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-06-26"), y=53, label="AOC wins \nNY-14 primary", size=3) + 
+  
+  geom_segment(x=as.Date("2018-05-18"), xend=as.Date("2018-05-18"),y=0,yend=40.2, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-05-18"), y=33, label="Trump withdraws \nfrom Iran \nnuclear deal", size=3) + 
+  
+  geom_segment(x=as.Date("2018-03-23"), xend=as.Date("2018-03-23"),y=0,yend=41, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-03-23"), y=34, label="Trump signs \nspending bill", size=3) +
+  
+    geom_segment(x=as.Date("2018-02-15"), xend=as.Date("2018-02-15"),y=0,yend=42, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-02-15"), y=32, label="Senate rejects \nDACA", size=3) +
+  
+    geom_segment(x=as.Date("2018-02-14"), xend=as.Date("2018-02-14"),y=42,yend=100, lty=2, color="grey", alpha=0.4) +
+        annotate("text", x=as.Date("2018-02-14"), y=53, label="Parkland, FL\nHS shooting", size=3) +
+  
+  geom_segment(x=as.Date("2018-01-22"), xend=as.Date("2018-01-22"),y=0,yend=37, lty=2, color="grey", alpha=0.4) +
+      annotate("text", x=as.Date("2018-01-22"), y=35, label="Gov shutdown", size=3) +
+      scale_x_date(date_labels = "%b, %Y") +
+    scale_color_manual(values = c("blue","red"), name = "") +
+    ylab("polling approval on date") + xlab("") +
+    theme_classic()
+```
+<!-- Q: if you asked Gelman and King, what would they say about this? -->
+
+## How do polls fluctuate across time?
+
+<!-- Q: so, is momentum a real thing? -->
+  * Convention and debate bumps.
+  * Polls fluctuate after some "game-changers".
+  * Polls fluctuate (or don't) \textit{despite} "game-changers". \pause
+  * \textbf{Momentum} \pause is a phrase used $\geq 60$ times a day by media outlet in election season, but... \pause
+    - [Denter and Sisak, \textit{Journal of Public Economics} (2015)](https://www.sciencedirect.com/science/article/abs/pii/S0047272715001218): in close races, poll equilibrium often shifts after a bump to one candidate
+    - [FiveThirtyEight (2010)](https://fivethirtyeight.blogs.nytimes.com/2010/10/20/the-misunderstanding-of-momentum/): weak evidence of positive serial correlation in polls (some evidence of \underline{negative} serial correlation!) \pause
+
+
+## Does the November poll predict the election? {.build}
+
+Correlation between November poll margin and two-party PV margin is:\pause
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE}
+popvote_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Polling/Section data/H_popvote_df_fin.csv") # replace with own wd()
+poll_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Polling/Section data/polls_df.csv")
+
+# november poll
+pollnov_df <- poll_df %>%
+  group_by(poll_date, party) %>%
+  arrange((poll_date))
+  
+# january poll
+polljan_df <- poll_df %>%
+  group_by(poll_date, party) %>%
+  arrange((poll_date))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# # polling margin winning party - within-party - Nov-Jan
+# pn_df <- pollnov_df %>%
+#   left_join(popvote_df, by = c("year"="year", "party"="party")) %>%
+#   filter(emonth != '12') %>%
+#   group_by(emonth, year) %>%
+#   mutate(winner_support = case_when(winner_party == 'R' 
+#                             & party == 'R' ~ support,
+#                             winner_party == 'D' 
+#                             & party == 'D' ~ support)) %>%
+#   group_by(year) %>% 
+#   mutate(pv2p_margin=abs(first(majorvote_pct)-last(majorvote_pct)), 
+#         pv2p_winner = case_when(winner_party == 'D' ~ votes,
+#             TRUE ~ votes)) %>%
+#   filter(party == winner_party) %>%
+#   mutate(poll_margin=first(support)-last(support))
+
+# polling margin winning party - between-party - in Nov
+pnp_df <- pollnov_df %>%
+  left_join(popvote_df, by = c("year"="year", "party"="party")) %>%
+  filter(emonth == 11) %>%
+  group_by(emonth, year) %>%
+  mutate(winner_support = case_when(winner_party == 'R' 
+                            & party == 'R' ~ support,
+                            winner_party == 'D' 
+                            & party == 'D' ~ support)) %>%
+  group_by(year) %>% 
+  mutate(pv2p_margin=abs(first(majorvote_pct)-last(majorvote_pct)), 
+        pv2p_winner = case_when(winner_party == 'D' ~ votes,
+            TRUE ~ votes),
+        poll_margin= case_when(winner_party == 'D' ~ first(support)-last(support),
+                                TRUE ~ last(support)-first(support))) %>%
+    filter(party == winner_party)
+
+# just general preference for winning party
+# prefnov_df <- pollnov_df %>%
+#   left_join(popvote_df, by = c("year"="year", "party"="party")) %>%
+#   filter(emonth == 11) %>%
+#   group_by(emonth, year) %>%
+#   mutate(winner_support = case_when(winner_party == 'R' 
+#                             & party == 'R' ~ support,
+#                             winner_party == 'D' 
+#                             & party == 'D' ~ support)) %>%
+#   group_by(year) %>% 
+#     filter(party == winner_party, poll_date == first(poll_date)) %>%
+#   group_by(poll_date) %>%
+#     mutate(avg_winner_support = mean(winner_support)) %>%
+#   distinct(year, poll_date, winner_support, majorvote_pct)
+
+```
+`r cor(pnp_df$pv2p_margin, pnp_df$poll_margin)`
+
+## Does the November poll predict the election? {.build}
+
+<!--explain quadrant and values of correlation-->
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5, out.width = '70%', fig.align='center'}
+# # nov winner - jan winner
+# pn_df %>%
+#   ggplot(aes(x=poll_margin, y=pv2p_margin,
+#              label=year)) + 
+#     geom_text() +
+#     xlim(c(-5, 15)) + ylim(c(-5, 20)) +
+#     geom_abline(slope=1, lty=2) +
+#     geom_vline(xintercept=0, alpha=0.2) + 
+#     geom_hline(yintercept=0, alpha=0.2) +
+#     xlab("winning party's polling margin in November (within-party)") +
+#     ylab("winning party's two-party voteshare margin") +
+#     ggtitle("Relationship between November polls and voteshare (House)") +
+#     theme_bw()
+# nov winner - nov loser
+pnp_df %>%
+  ggplot(aes(x=poll_margin, y=pv2p_margin,
+             label=year)) + 
+    geom_text() +
+    xlim(c(-5, 15)) + ylim(c(-5, 20)) +
+    geom_abline(slope=1, lty=2) +
+    geom_vline(xintercept=0, alpha=0.2) + 
+    geom_hline(yintercept=0, alpha=0.2) +
+    xlab("winning party's polling margin in November (latest poll, between-party)") +
+    ylab("winning party's two-party voteshare margin") +
+    ggtitle("Relationship between November polls and voteshare (House)") +
+    theme_bw()
+# # nov winner support
+# prefnov_df %>%
+#   ggplot(aes(x=(winner_support), y=(majorvote_pct),
+#              label=(year))) + 
+#     geom_text() +
+#     xlim(c(-5, 75)) + ylim(c(-5, 75)) +
+#     geom_abline(slope=1, lty=2) +
+#     geom_vline(xintercept=0, alpha=0.2) + 
+#     geom_hline(yintercept=0, alpha=0.2) +
+#     xlab("winning party's polling support in November (latest poll, within-party)") +
+#     ylab("winning party's two-party voteshare") +
+#     ggtitle("Relationship between November polls and voteshare (House)") +
+#     theme_bw()
+```
+
+<!--A:
+\textbf{Q}: What are the outliers?
+
+- What trends do we see here? 
+- Compare with the plot below that we saw in lecture
+-->
+
+## Does the January poll predict the election? {.build}
+
+<!-- Q. What about the earliest polls at the start of the race?  Do we know the result by then? -->
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5, out.width = '70%', fig.align='center'}
+polljan_vote_margin_df <- polljan_df %>%
+  left_join(popvote_df, by = c("year"="year", "party"="party")) %>%
+  filter(emonth == '01') %>%
+  group_by(emonth, year) %>%
+  mutate(winner_support = case_when(winner_party == 'R' 
+                            & party == 'R' ~ support,
+                            winner_party == 'D' 
+                            & party == 'D' ~ support)) %>%
+  group_by(year) %>% 
+  mutate(pv2p_margin=abs(first(majorvote_pct)-last(majorvote_pct)), 
+        pv2p_winner = case_when(winner_party == 'D' ~ votes,
+            TRUE ~ votes),
+        poll_margin= case_when(winner_party == 'D' ~ first(support)-last(support),
+                                TRUE ~ last(support)-first(support))) %>%
+    filter(party == winner_party)
+
+polljan_vote_margin_df %>%
+  ggplot(aes(x=poll_margin, y=pv2p_margin, label=year)) + 
+    geom_text() +
+    xlim(c(-5, 30)) + ylim(c(-5, 30)) +
+    geom_abline(slope=1, lty=2) +
+    geom_vline(xintercept=0, alpha=0.2) + 
+    geom_hline(yintercept=0, alpha=0.2) +
+    xlab("winning party's polling margin in January (first poll, between-party)") +
+    ylab("winning party's two-party voteshare margin") +
+    ggtitle("Relationship between January polls and voteshare (House)") +
+    theme_bw() # highlight midterm years vs. pres years?
+```
+
+\pause Correlation between January poll margin and two-party PV margin is: \pause
+
+`r cor(polljan_vote_margin_df$pv2p_margin, polljan_vote_margin_df$poll_margin)`
+
+<!-- Q: ask them this -- 0.66 -->
+
+## Do polls get more predictive over time?
+
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{polls_IJF.png}
+\end{figure}
+
+# Predicting 2020 using polls
+
+\begin{center}
+(Interactive Session in \texttt{R Studio})
+\end{center}
+
+## Predicting 2020 using polls
+
+What we've learned:
+
+   * One-sided model of incumbent $\rightsquigarrow$ two-sided model of incumbent and challenger
+       * using \texttt{pv2p} usually means $\hat{Y}_{inc} + \hat{Y}_{chl} > 100\%$
+       * can be fit in a single `lm` using interactions \pause
+   * \textbf{Classification accuracy:} $\frac{\text{number of correct predictions}}{\text{number of predictions}}$ \pause
+   * Multiple regression is useful, but not only way to combine IVs
+   * \textbf{Weighted ensembles} $\rightsquigarrow$ flexible to combine separate models, e.g.:  \pause
+       * weight equally (Graefe 2020)
+       * weight on days til election (pollsters vs. Gelman $\&$ King (1993))
+       * weight on $R^{2}$ (Silver 2022)
+       * weight on cross-validation error (this is called ["Super Learning"](https://www.stat.berkeley.edu/users/laan/Class/Class_subpages/BASS_sec1_3.1.pdf))
+       * weight on human priors  \pause
+   * The most cutting edge methods, to date, combine fundamentals and polls using probabilistic (Bayesian) models, e.g. [Lauderdale, Linzer (2015)](https://votamatic.org/wp-content/uploads/2015/08/2015LauderdaleLinzerIJF.pdf)
+   $\rightsquigarrow$ \textcolor{red}{stay tuned!}
+
+## Update your forecasting model
+Moving forward, you will put out a forecast every week that builds on previous weeks. This week, add in polling data in whatever way you see fit (could be guided by the extensions). How does your model change? Is it a better model (as determined by in-sample and out-of-sample tests)? Worse? Next week, you can adjust your model again depending on what you find.
+
+\pause
+
+## Blog Extensions
+\tiny
+1. \textbf{What Do Forecasters Do?} Based on what you've learned about fundamentals and poll-based forecasts, (1) briefly summarize Silver (2022) and Morris (2020a): (https://projects.economist.com/us-2020-forecast/house) \footnote{Don't worry about the technical details (regularization/shrinkage/Bayesian modeling)} and (2) compare and contrast their approaches. In your opinion, which of the two is the better approach?
+
+2. \textbf{Incorporating Pollster Quality:} Consider [2018/2020 pollster ratings (on \texttt{GitHub})](https://github.com/fivethirtyeight/data/tree/master/pollster-ratings) from FiveThirtyEight. (1) How much variation is there in pollster quality? (2) Using tools and knowledge you've gained so far, build a model (possibly an ensemble) using individual polls from 2018 (`538_generic_2018.csv`) and 2022 (`538_generic_poll_2022.csv`). How does your model compare to the models this week in lab?
+
+3. \textbf{Incorporating district-level polls} How do district-level polls differ from national level polls?  Using careful model evaluation techniques and considering possible choices of weighted ensembles, build a predictive model for 2022 using current cycle district-level polls. Remember that you can choose two-party voteshare or seatshare as your outcome variable. How you build the model is up to you. You can combine district and national-level polls. You can use only current cycle district-level polls as your predictor. You can combine historical national-level polls from past cycles with current cycle district-level polls. You can weight district and national-level differently. 
+  
