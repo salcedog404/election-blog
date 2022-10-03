@@ -1,11 +1,239 @@
 ---
 title: Blog Post 4 - Incumbency and Expert Predictions
 author: Giovanni Salcedo
-date: '2022-09-30'
+date: '2022-10-03'
 slug: []
 categories: []
 tags: []
-summary: Placeholder
+summary: In this blog post, I primarily look at the role of expert predictions in election forecasting, and I attempt to incorporate them into my forecast that is still based on the incumbent party voteshare.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+# Introduction
+
+As we discussed last week, the FiveThirtyEight and the Economist each run their own election forecasts, with each of them having similarities and differences in their methodology when it comes to how to incorporate variables like polling and the fundamentals. One interesting difference, however, between the two models especially caught my attention - FiveThirtyEight's model (specifically the Deluxe version) includes other forecasters' ratings of the different races. Although adding their ratings to a model could feel like "cheating," they could be considered as another one of several indicators of how each party is doing, similar to other variables like polling or the economy.
+
+## Are the Experts Really Experts? A Look at 2018
+
+Elections can be weird, and 2018 was no exception. The first midterm of Donald Trump's presidency, the election ended up giving both parties a result to be happy about, as each chamber of Congress moved in opposite directions, with Democrats winning a net of 41 seats and taking the House majority at the same time that Republicans won a net of 2 seats and held on to control of the Senate. This outcome seems strange considering midterms are usually unfavorable all around for the party in power. In fact, the last time that the incumbent president's party made net gains in one chamber and suffered net losses in the other chamber [was in 1970!]("https://www.washingtonpost.com/powerpost/stark-political-divide-points-to-a-split-decision-in-midterm-elections/2018/10/12/d98bbc60-c686-11e8-b1ed-1d2d65b86d0c_story.html)
+
+Elections like these make it that much more interesting to follow the predictions of the experts. To analyze their accuracy in 2018, I used a dataset provided by Ethan Jasny - another student in this course - which contains expert race ratings of all 435 congressional districts by the three expert organizations that FiveThirtyEight uses. Using this data and shapefile data from previous weeks, I was able to visualize the actual two-party voteshare for each district in 2018 and the average expert race ratings for all of the districts.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+## Load packages
+library(tidyverse)
+library(readr)
+library(sf)
+library(rmapshaper)
+library(usmap)
+library(tigris)
+
+## Load House vote share by district data
+h <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 4/District level forecast/house party vote share by district 1948-2020.csv")
+
+## Load geographic data for 114th congress (2015-2017)
+get_congress114_map <- function(cong=114) {
+tmp_file <- tempfile()
+tmp_dir <- tempdir()
+zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+download.file(zp, tmp_file)
+unzip(zipfile = tmp_file, exdir = tmp_dir)
+fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+st_read(fpath)
+}
+
+## Load 114th congress
+cd114 <- get_congress114_map(114)
+
+## Load expert data for 2018
+expert <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 4/2018_ratings_share.csv")
+
+## Model data
+# House and seat share by year
+house_dat <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/house_popvote_seats.csv")
+# National unemployment by quarter
+unemployment <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/unemployment_national_quarterly_final.csv")
+# Polls
+polls_df <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/polls_df.csv")
+fivethirtyeight_polls <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/538_house_polls_2022.csv")
+
+# CPI by month
+CPI_monthly <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/CPI_monthly.csv")
+# Create year and month columns based on DATE column
+CPI_monthly2 <- CPI_monthly %>% 
+  mutate(year = substr(DATE, 1, 4),
+         month = substr(DATE, 6, 7))
+
+## Change year and month column classes to numeric
+CPI_monthly2$year <- as.numeric(CPI_monthly2$year)
+CPI_monthly2$month <- as.numeric(CPI_monthly2$month)
+
+## Calculating average percent change in CPI in last 3 months before election
+CPI_monthly3 <- CPI_monthly2 %>% 
+  filter(month %in% c(8, 9, 10)) %>%
+  # Monthly percent change
+  mutate(cpi_pct_chg = (CPIAUCSL/lag(CPIAUCSL) - 1) * 100) %>%
+  # Average percent change per year between August and October
+  group_by(year) %>% 
+  mutate(avg_pct_chg = mean(cpi_pct_chg)) %>% 
+  # Only need one row per year
+  filter(month == 10)
+
+## All expert data
+expert_rating <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 4/District level forecast/expert_rating.csv")
+```
+
+```{r 2018 voteshare}
+## Select state and district columns
+cd114 <- cd114 %>%
+  mutate(DISTRICT = as.character(DISTRICT)) %>%
+  select(STATENAME, DISTRICT)
+
+## Filter for relevant variables
+R_2018 <- h %>%
+  filter(raceYear == 2018) %>%
+  select(raceYear, State, district_num, district_id, RepVotes, DemVotes, RepVotesMajorPercent) %>% 
+  # Rename state and district variable names to match shapefile
+  rename(DISTRICT = district_num, STATENAME = State)
+
+## Change DISTRICT class to numeric
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+
+## Join election returns with shapefiles
+cd114 <- cd114 %>% left_join(R_2018, by = c("DISTRICT", "STATENAME"))
+
+## Shift geometry to keep Alaska and Hawaii visible without distorting map
+cd114 <- cd114 %>% 
+  shift_geometry()
+
+## Simplify shapefiles for quicker mapping
+cd114 <- ms_simplify(cd114)
+```
+
+```{r experts}
+## Clean data
+expert_avg <- expert %>% 
+  select(District, avg) %>%
+  # Remove dashes to match district_id format in cd114
+  mutate(District = gsub("-", "", District),
+         # Change numbering of at-large districts to match format in cd114
+         District = if_else(District %in% c("AK01", "DE01", "MT01", "ND01", "SD01", "VT01", "WY01"),
+                            gsub("01", "00", District), District)) %>%
+  # Rename columns to match columns in cd114
+  rename("district_id" = "District", "avg_expert_rating" = "avg")
+
+## Add average expert ratings to district data
+expert_2018 <- left_join(cd114, expert_avg, by = "district_id")
+```
+
+```{r plot expert predictions}
+## Plot
+ggplot() +
+  geom_sf(data = expert_2018, aes(fill = avg_expert_rating), inherit.aes=FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1", midpoint = 4,
+                       name = "Average rating",
+                       labels = c("Solid D", "Likely D", "Lean D", "Toss-up", "Lean R", "Likely R", "Solid R")) +
+  labs(title = "2018 Average Expert Ratings of Congressional Races",
+       subtitle = "Ratings from Cook Political Report, Inside Elections, and Sabato's Crystal Ball") +
+  theme_void() + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                       axis.ticks.x=element_blank(), axis.text.y=element_blank(),
+                       axis.ticks.y=element_blank())
+```
+
+```{r plot voteshare}
+## Plot
+ggplot() +
+  geom_sf(data = cd114, aes(fill = RepVotesMajorPercent), inherit.aes=FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1", midpoint = 50,
+                       name = "Percent GOP voteshare", labels = scales::percent_format(scale = 1)) +
+  labs(title = "2018 Republican Voteshare by Congressional District") +
+  theme_void() + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                       axis.ticks.x=element_blank(), axis.text.y=element_blank(),
+                       axis.ticks.y=element_blank())
+```
+
+The top graph shows the average expert ratings, while the bottom graph shows the final Republican voteshare. Despite the more intense colors on the expert ratings graph, which I believe is due to more of a concentration of datapoints on the extremes than for the actual voteshares, the experts can generally predict the results in most districts, including in more competitive areas.
+
+```{r difference}
+## Calculating difference between actual voteshare and expert predictions
+expert_dif <- expert_2018 %>%
+  # Convert voteshare ranges into expert prediction categories
+  mutate(actual_rating = case_when(
+    RepVotesMajorPercent < 45 ~ 1,
+    RepVotesMajorPercent >= 45 & RepVotesMajorPercent < 47 ~ 2,
+    RepVotesMajorPercent >= 47 & RepVotesMajorPercent < 49 ~ 3,
+    RepVotesMajorPercent >= 49 & RepVotesMajorPercent <= 51 ~ 4,
+    RepVotesMajorPercent > 51 & RepVotesMajorPercent <= 53 ~ 5,
+    RepVotesMajorPercent > 53 & RepVotesMajorPercent <= 55 ~ 6,
+    RepVotesMajorPercent > 55 ~ 7),
+    # Calculate difference
+        dif_rating = actual_rating - avg_expert_rating)
+```
+
+```{r plot difference}
+## Plot
+ggplot() +
+  geom_sf(data = expert_dif, aes(fill = dif_rating), inherit.aes=FALSE, alpha = 0.9) +
+  scale_fill_gradient2(low = "dodgerblue", mid = "white", high = "firebrick1", midpoint = 0,
+                       name = "Difference") +
+  labs(title = "Difference Between Actual District Rating and Expert Rating",
+       subtitle = "One unit = one shift in rating") +
+  theme_void() + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                       axis.ticks.x=element_blank(), axis.text.y=element_blank(),
+                       axis.ticks.y=element_blank())
+```
+
+For an easier to see comparison, I made a third map which shows the difference in the actual result from the average expert prediction for a given district. I grouped the different voteshares into the same categories as the expert predictions based on how large Republicans won or lost in their districts. On this graph, positive numbers mean Republicans did better than the expert prediction, while negative numbers mean Republicans did worse. Throughout most of the country, the difference is close to 0, but that can likely be attributed to the fact that most races in the House are not competitive. Instead, you can see a pattern of underestimating Democrats in some areas like California, Arizona, and Texas while underestimating Republicans in New York, Florida, and the Rust Belt. However, many of these districts seemed to have only shifted one category, which may not have always led to the seat flipping outright. Overall though, the experts to rarely be wrong by much, if at all, even in elections like 2018.
+
+# Updating my Model
+
+Based on this analysis, I wanted to try and add expert ratings to my current model, though with how the data was structured, using it for my model that still uses national-level data for incumbent party voteshare would be tougher. The method I tried was to essentially take the expert district ratings from 2010 to 2020 and take the average, by year, across the whole country. I added this as another independent variable alongside the fundamentals and polling and ran a linear regression, the results of which are below.
+
+```{r}
+## Merge all data
+dat_fun <- CPI_monthly3 %>% 
+  left_join(house_dat, by = 'year') %>% 
+  # Filter for only election years
+  drop_na() %>% 
+  left_join(unemployment, by = 'year') %>% 
+  select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 'avg_pct_chg', 'quarter_yr', 'UNRATE') %>% 
+  # Filter for unemployment one month before election
+  filter(quarter_yr == 4)
+
+dat_poll_fun <- polls_df %>%
+  group_by(year, party) %>% 
+  mutate(avg_support = mean(support)) %>% 
+  ungroup() %>% 
+  left_join(dat_fun, by = 'year') %>% 
+  filter(party == "D")
+
+# Yearly average of average expert ratings from 2010 to 2020  
+expert_model <- expert_rating %>% 
+  group_by(year) %>% 
+  summarize(avg_expert = mean(avg_rating)) %>% 
+  filter(!year == 2022)
+
+dat_poll_fun_exp <- dat_poll_fun %>% 
+  left_join(expert_model, by = "year")
+
+## Linear model
+lm_poll_fun_exp <- lm(H_incumbent_party_majorvote_pct ~ avg_pct_chg + UNRATE + avg_support + avg_expert, data = dat_poll_fun_exp)
+summary(lm_poll_fun_exp)
+```
+Interestingly, the coefficients are all statistically significant, and the adjusted R-squared since adding the "avg_expert" variable skyrocketed to 0.8509. However, I have my doubts about the true validity of this model, as the sample size for expert ratings is very small, and the method that I used condenses all ratings from across the country, which may not produce the most accurate results.
+
+```{r 2022 prediction}
+# Subset 2022 average of average expert ratings
+avg_expert_2022 <- expert_rating %>%
+  filter(year == 2022) %>% 
+  group_by(year) %>% 
+  summarize(avg_expert_2022 = mean(avg_rating)) %>% 
+  select(avg_expert_2022) %>% 
+  as.numeric()
+
+# New 2022 prediction
+predict(lm_poll_fun_exp, data.frame(avg_pct_chg = 0.8759928, UNRATE = 3.6, avg_support = 42.7275833333333, avg_expert = 4.07092198584397), interval = "prediction")
+```
+
+The model gave me an incredibly strange prediction - a 32.33% voteshare for the incumbent party! While not impossible, this result would be incredibly unlikely! As suspected, including expert predictions in this way caused my model to perform much worse than before, which means next week, I will reevaluate which other variables I should consider instead.

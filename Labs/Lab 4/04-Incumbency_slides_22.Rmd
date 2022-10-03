@@ -191,7 +191,7 @@ polls_df <- dist_polls_2018_2022 %>%
 
 # merge with incumbency data
 # load data
-incumb_df <- read_csv("incumb_dist_1948-2022 (2).csv")
+incumb_df <- read_csv("incumb_dist_1948-2022 (3).csv")
 # filter for specific district and year
 oh <- NA
 oh <- incumb_df %>%
@@ -483,16 +483,16 @@ See Yao's code in the Class dropbox for starter code on how to do aggregate our 
 library(tidyverse)
 library(knitr)
 library(readr)
-incumb_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/fundamentals II_ incumbency/incumb_dist_1948-2020.csv") # replace with your wd()
+incumb_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/fundamentals II_ incumbency/incumb_dist_1948-2020 (3).csv") # replace with your wd()
 
 incumb_df <- 
   incumb_df %>%
   mutate(winner_candidate = case_when(winner_party == 'R' ~ 'RepCandidate',
                                       TRUE ~ 'DemCandidate'),
          winner_candidate_inc = case_when(winner_candidate == 'RepCandidate' & RepStatus == 'Incumbent' ~ "Incumbent",
-                                                 winner_candidate == 'RepCandidate' & RepStatus == 'Challenger' ~ "Challenger",
-                                             winner_candidate == 'DemCandidate' & DemStatus == 'Incumbent' ~ "Incumbent",
-                                             winner_candidate == 'DemCandidate' & DemStatus == 'Challenger' ~ "Challenger",
+                                          winner_candidate == 'RepCandidate' & RepStatus == 'Challenger' ~ "Challenger",
+                                          winner_candidate == 'DemCandidate' & DemStatus == 'Incumbent' ~ "Incumbent",
+                                          winner_candidate == 'DemCandidate' & DemStatus == 'Challenger' ~ "Challenger",
                                              TRUE ~ "Challenger"))
 ```
 
@@ -518,14 +518,14 @@ incumb_df %>%
 
 ## The incumbency advantage: descriptive statistics
 
-How many post-war elections where \textcolor{purple}{incumbent party won?}
+How many post-war elections where \textcolor{purple}{the president's party won?}
 \footnotesize
 ```{r, warning=FALSE, message=FALSE}
 incumb_df %>%
-  select(year, winner_party, winner_candidate, winner_candidate_inc) %>%
+  select(year, winner_party, winner_candidate, winner_candidate_inc, president_party) %>%
   mutate(winparty_last = lag(winner_party, order_by = year),
         wincand_last  = lag(winner_candidate,  order_by = year)) %>%
-  mutate(reelect.party = winparty_last == winner_party) %>%
+  mutate(reelect.party = winparty_last == president_party) %>%
   filter(year > 1948) %>%
   group_by(reelect.party) %>% 
   summarise(n = n()) %>% 
