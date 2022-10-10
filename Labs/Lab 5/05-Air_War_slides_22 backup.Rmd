@@ -1,0 +1,323 @@
+---
+title: The Air War 
+subtitle: "Gov 1347: Election Analytics"
+author: Kiara Hernandez
+date: \today
+institute: Harvard University
+fontsize: 10pt
+output:
+ beamer_presentation:
+    keep_tex: true
+    theme: metropolis
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: zenburn
+    incremental: false
+header-includes:
+  \setbeamercolor{frametitle}{bg=purple}
+  \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+  \usepackage{verbatim}
+  \definecolor{darkgreen}{rgb}{0.0, 0.2, 0.13}
+---
+
+## Today's agenda
+
+- \textbf{How to do district-level predictions with different types of data}
+    -How to incorporate national-level data in district-level predictions \newline
+    -What to do in the absence of district-level data (polling) \newline
+    -Thinking through relevant outcome variables \newline
+    -How to deal with open seat contests \newline
+      -How to incorporate individual district-level incumbency
+    
+- \textbf{Advertising data mini-hackathon (20 minutes)} \newline
+    
+- \textbf{Suggested blog extensions}
+    - build your own model of ad effects
+    - what's the deal with social media?
+
+# Reviewing district-level prediction
+
+- Let's think through 4 scenarios we might be in when making district-level predictions:
+
+# Scenario (1) We have national-level data and no district-level data
+  -Example 1: Q8-Q7 GDP growth \newline
+  
+  -Best option: Append the data as-is — that is, assign all districts the national-level data \newline
+    -Intuition: We might assume that all districts are experiencing if not the same, then similar, economic conditions (probably a bad assumption, but what else can we do?) \newline
+  
+  -Example 2: the generic congressional ballot \newline
+  
+  -Best option: Same as above - all districts are assigned the same D/R approval rating \pause
+      
+#  Scenario (2a) We have good district-level data in some cases and bad district-level data in others
+-Example: District polls \newline
+
+-Best option: As we did in lab last week, we can borrow data from comparable districts \newline
+
+-Doing this on a case-by-case basis may be tedious, so we might consider coming up with a more generalized coding scheme: match on region, citizen voting age population (size), and lagged voteshare margin \footnote{these are just suggestions (Census demographic data could also be used)} \newline
+  $\rightarrow$ For each district, code the region, CVAP, and lagged voteshare margin. If districts fall within the same region, fall within the same quantile of the voter distribution, and have a voteshare margin within $0.1\%$ of one another, append the polling data if there is no existing data. Example below: \pause
+        
+```{r, eval=FALSE, echo=TRUE}
+# example code (TO BE GIVEN, standby please)
+# polls_df <- read_csv("dist_polls_2018-2022.csv")
+# districts_df 
+
+  # look at distribution of CVAP - run quantiles - think through population differences
+  
+  # districts missing expert prediction - just assign - NA and R_inc == TRUE, then assign R prediction
+  
+  # then slot in borrowed data - nested if commands - match and assign variable 
+
+```
+
+# Scenario (2b) We have good district-level data in some cases and bad district-level data in others
+-Example: Expert predictions \newline
+
+-Intuitively, why no expert predictions in the majority of districts? Because most districts will following historical voting patterns $\rightarrow$ What does this mean for our predictions? \newline
+  
+  -Option: create separate models for competitive districts and "safe" districts. In safe districts, you can model using only fundamentals + ... + (incumbency, polling, etc.). In competitive districts, you can then also incorporate expert predictions.\pause
+
+# Scenario (3) How to incorporate individual district-level incumbency
+-For district-level predictions, we need to think about how to align our dependent variable and independent variable. We've thought a lot about this, and this our recommendation.\newline
+ 
+ Independent variable: \newline binary incumbent_party variable ($1$ if the incumbent party is D, $0$ if the incumbent party is R) \newline 
+ dummy open_seat variable ($1$ if open contest, $0$ if closed contest) \newline
+ 
+ Outcome variable: dem_party_voteshare (or rep_party_voteshare; reverse code incumbent_party in this case) \newline
+    -This gets around the problem of open seat contests, but you could imagine other ways in which this outcome variable is not ideal \newline
+
+# Scenario (4) National-level predictions (voteshare or seatshare)
+This follows from the example code given two weeks ago. \newline
+ -Model 1: All incumbents \newline
+ -Model 2: All challengers \newline
+ -Model 3: Open seats
+\pause
+
+## Other general notes
+Consider coding all variables (\textbf{especially} expert predictions) as dummy variables (recall the conversation from Discussion this week)
+  -This simplifies our lives because it allows us to more easily identify the association between expected and voteshare. \pause
+
+# Advertising data mini-hackathon
+
+## Midterm ad campaigns from 2006-2018 (excluding 2008)
+\pause
+\texttt{ads\_2006-2018.csv}: data related to the design and content ("creative") and day-by-day ad spendings and airings in each district of candidate/PAC/party-run ads day-by-day in each campaign. 
+
+\texttt{ads\_issues\_2012-2018.csv}: the same as \texttt{ads\_2006-2018.csv}, but in $2012$, ad issue content and estimated ad cost became available. Look at all the variables: names(ads_2006_2018), names(ads_issues_2012-2018).
+
+## Advertising data mini-hackathon (20 minutes)
+
+It is the year 2026 and you and a few of your Gov 1347 friends have landed a lucrative data science internship for the DNC. In 20 minutes, you all have a meeting with the chief campaign strategist of [your favorite soon-to-be congressional candidate] who wants answers to the following questions:
+
+1. What are some trends in the \underline{tone} and \underline{purpose} of Democratic ads?
+
+2. What are some trends in the \underline{issues} mentioned in ads by each party?
+
+3. How much money do winning challenger candidates spend on advertising and when during the campaign do they spend most of it?
+
+4. Democrats did well in 2018... how much money did they spend on battleground states and which did they win? 
+
+Read in \texttt{ads\_2006-2018.csv} and \texttt{ads\_issues\_2012-2018.csv} and answer these 4 questions with your team. If you're running short on time, guesstimate the remaining answers.
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+
+setwd("~/Documents/R-Projects/election-blog/Labs/Lab 5")
+
+# load datasets
+pvstate_df   <- read_csv("incumb_dist_1948-2020 (3).csv")
+#pvstate_df   <- 'incumb_dist_1948-2020 (3)'
+ad_creative  <- read_csv("ads_2006_2018.csv")
+ad_issues <- read_csv("ads_issues_2012-2018.csv")
+
+```
+
+## Tone and Political Ads
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# code
+ad_creative %>%
+  group_by(cycle, party) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, party, ad_tone) %>% summarise(pct=n()*100/first(tot_n)) %>%
+  filter(!is.na(ad_tone), !is.na(party)) %>%
+  ggplot(aes(x = cycle, y = pct, fill = ad_tone, group = party)) +
+  geom_bar(stat = "identity") +
+  scale_x_discrete(breaks = c(2006, 2010, 2012, 2014, 2016, 2018)) + # 2014?
+  #coord_flip() +
+  # ggtitle("Campaign Ads Aired By Tone") +
+  scale_fill_manual(values = c("red","orange","gray","darkgreen","white"), name = "tone") +
+  xlab("") + ylab("%") +
+  facet_wrap(~ party) + theme_minimal() +
+  theme(axis.title = element_text(size=20),
+        axis.text = element_text(size=15),
+        strip.text.x = element_text(size = 20))
+```
+
+## The Purpose of Political Ads
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ad_creative %>%
+  group_by(cycle, party) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, party, ad_purpose) %>% summarise(pct=n()*100/first(tot_n)) %>%
+  filter(!is.na(ad_purpose), !is.na(party)) %>%
+  # bind_rows( ##2020 raw data not public yet!
+  #   data.frame(cycle = 2016, ad_purpose = "personal", party = "democrat", pct = 67),
+  #   data.frame(cycle = 2016, ad_purpose = "policy", party = "democrat", pct = 12),
+  #   data.frame(cycle = 2016, ad_purpose = "both", party = "democrat", pct = 21),
+  #   data.frame(cycle = 2016, ad_purpose = "personal", party = "republican", pct = 11),
+  #   data.frame(cycle = 2016, ad_purpose = "policy", party = "republican", pct = 71),
+  #   data.frame(cycle = 2016, ad_purpose = "both", party = "republican", pct = 18)
+  #) %>%
+  ggplot(aes(x = cycle, y = pct, fill = ad_purpose, group = party)) +
+  geom_bar(stat = "identity") +
+  scale_x_discrete(breaks = c(2006, 2010, 2012, 2014, 2016, 2018)) +
+  # ggtitle("Campaign Ads Aired By Purpose") +
+  scale_fill_manual(values = c("grey","red","darkgreen","black","white"), name = "purpose") +
+  xlab("") + ylab("%") +
+  facet_wrap(~ party) + theme_minimal() +
+  theme(axis.title = element_text(size=20),
+        axis.text = element_text(size=15),
+        strip.text.x = element_text(size = 20))
+```
+
+
+## The Elections and Their Issues
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(cowplot)
+
+top_issues <- ad_issues %>%
+  filter(!grepl("N/A", issue)) %>%
+  group_by(cycle, issue) %>% summarise(n=n()) %>% top_n(5, n)
+
+## making each plot in a grid to have its own x-axis (issue name)
+## is tricky with `facet_wrap`, so we use this package `cowplot`
+## which allows us to take a list of separate plots and grid them together
+plist <- lapply(c(2012,2014,2016,2018), function(c) {
+  top_issues %>% filter(cycle == c) %>% 
+    ggplot(aes(x = reorder(issue, n), y = n)) +
+    geom_bar(stat = "identity") + coord_flip() + theme_bw() +
+    xlab("") + ylab("number ads aired") + ggtitle(paste("Top 5 Ad\nIssues in",c)) +
+    theme(axis.title = element_text(size=6),
+        axis.text = element_text(size=6),
+        strip.text.x = element_text(size = 6))
+  
+})
+cowplot::plot_grid(plotlist = plist, nrow = 2, ncol = 2, align = "hv")
+
+```
+
+## Campaign Ads Aired By Issue and Party: 2018
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+party_issues2018 <- ad_issues %>%
+  filter(cycle == 2018) %>%
+  filter(issue != "None", !is.na(party)) %>%
+  ## this `group_by` is to get our denominator
+  group_by(issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  ## this one is get numerator and calculate % by party
+  group_by(issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+   ## filter idiosyncratic issues
+  filter(p_n != 100.000000) %>%
+  ## finally, this one so we can sort the issue names
+  ## by D% of issue ad-share instead of alphabetically
+  group_by(issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2018, aes(x = reorder(issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("blue", "red")) +
+  ylab("% of ads on topic from each party") + xlab("issue") +
+  # ggtitle("Campaign Ads Aired by Topic in 2000") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=5),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5)) 
+```
+
+## Campaign Ads Aired By Issue and Party: 2014
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+party_issues2014 <- ad_issues %>%
+  filter(cycle == 2014) %>%
+  filter(issue != "None", !is.na(party)) %>%
+  group_by(cycle, issue) %>% mutate(tot_n=n()) %>% ungroup() %>%
+  group_by(cycle, issue, party) %>% summarise(p_n=n()*100/first(tot_n)) %>% ungroup() %>%
+  filter(p_n != 100.000000) %>%
+  group_by(cycle, issue) %>% mutate(Dp_n = ifelse(first(party) == "democrat", first(p_n), 0))
+
+ggplot(party_issues2014, aes(x = reorder(issue, Dp_n), y = p_n, fill = party)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("blue", "red")) +
+  ylab("% of ads on topic from each party") + xlab("issue") +
+  # ggtitle("Campaign Ads Aired by Topic in 2012") +
+  coord_flip() + 
+  theme_bw() + 
+  theme(axis.title = element_text(size=6),
+        axis.text = element_text(size=5),
+        strip.text.y = element_text(size = 5)) 
+```
+
+## When to Buy Ads? 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(scales)
+ad_issues %>%
+  #mutate(year = as.numeric(substr(airdate, 1, 4))) %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(cycle %in% c(2012, 2014, 2016, 2018), month > 7) %>%
+  group_by(cycle, airdate, party) %>%
+  summarise(total_cost = sum(est_cost)) %>%
+  ggplot(aes(x=airdate, y=total_cost, color=party)) +
+  # scale_x_date(date_labels = "%b, %Y") +
+  scale_y_continuous(labels = dollar_format()) +
+  scale_color_manual(values = c("blue","red"), name = "") +
+  geom_line() + geom_point(size=0.5) +
+  facet_wrap(cycle ~ ., scales="free") +
+  xlab("") + ylab("ad spend") +
+  theme_bw() +
+  theme(axis.title = element_text(size=15),
+        axis.text = element_text(size=11),
+        strip.text.x = element_text(size = 15))
+```
+
+## Tone in Political Ads
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ad_creative %>%
+  filter(ad_tone %in% c("attack", "promote")) %>%
+  mutate(year = as.numeric(substr(airdate, 1, 4))) %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(year %in% c(2012, 2014, 2016, 2018), month > 7) %>%
+  group_by(cycle, airdate, ad_tone) %>%
+  summarise(total_cost = sum(n_stations)) %>%
+  group_by(cycle, airdate) %>%
+  mutate(total_cost = total_cost/sum(total_cost)) %>%
+  ungroup() %>%
+  ggplot(aes(x=airdate, y=total_cost, fill=ad_tone, color=ad_tone)) +
+  # scale_x_date(date_labels = "%b") +
+  scale_fill_manual(values = c("purple","green"), name = "ad tone") +
+  scale_color_manual(values = c("purple","green"), name = "ad tone") +
+  geom_bar(stat = "identity") +
+  facet_wrap(cycle ~ ., scales="free") +
+  xlab("") + ylab("% of ads bought on day") +
+  theme_bw() +
+  theme(axis.title = element_text(size=20),
+        axis.text = element_text(size=10),
+        strip.text.x = element_text(size = 20))
+
+```
+
+\pause
+
+## Blog Extensions (DUE ON TUESDAY 10/11)
+\footnotesize
+\textbf{Using 2018 Ads Data.} Using the data from this section (and incorporating
+useful data from previous weeks) fit a model and predict 2022 district-level voteshare
+in relevants districts given \textcolor{red}{existing data} on ad spending in 2018.\footnote{Hint: to incorporate 2022 ad spending data, you will have to find that data yourself or use informed guesses about each campaign's spending in the relevant time period. You can use the most recent data as a stand-in (2018 data).}. What are the limitations of your model?
+
+\textbf{Social Media.} How much do campaigns spend on social media ads? Does social media influence election outcomes? How will it influence 2022? In the raw WMP files, you will find data on social media ads from 2012-2018. Reference the codebooks for more details about how these variables are coded. 
+
+\textbf{Reviewing GPR.} Review the readings for this week (Gerber et al. 2011, Huber and Arceneaux 2007). How do they quantify Gross Point Rating? Provide a descriptive/theoretical response to how you would approximate advertising effects at the national-level or for a specific district in which ads were run. Next week, we'll look more closely at how this can be done (Hint: Simulations based on voter population)
