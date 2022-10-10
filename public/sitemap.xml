@@ -2,13 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://example.org/post/2022-09-30-blog-post-4-incumbency-and-expert-predictions/</loc>
-    <lastmod>2022-10-03T00:00:00+00:00</lastmod>
+    <loc>http://example.org/post/2022-10-10-blog-post-5-the-air-war/</loc>
+    <lastmod>2022-10-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://example.org/</loc>
-    <lastmod>2022-10-03T00:00:00+00:00</lastmod>
+    <lastmod>2022-10-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://example.org/post/</loc>
+    <lastmod>2022-10-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://example.org/post/2022-09-30-blog-post-4-incumbency-and-expert-predictions/</loc>
     <lastmod>2022-10-03T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://example.org/post/2022-09-26-blog-post-3-polling/</loc>
