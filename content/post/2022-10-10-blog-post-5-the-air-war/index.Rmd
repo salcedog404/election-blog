@@ -5,12 +5,24 @@ date: '2022-10-10'
 slug: []
 categories: []
 tags: []
-summary: In this post, I will take a look at how ad spending can impact voteshare on the district level and what this means for the 2022 election based on ad data from the 2018 election.
+summary: In this post, I will take a look at how ad spending can impact voteshare at the district level and what this means for the 2022 election based on ad data from the 2018 election.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
 
 # Introduction
+
+*And I approve this message.*
+
+Every two years, the election cycle comes roaring back, and everything from TV commercials to YouTube ads feature the above words candidates running for federal office [are required](%22https://ballotpedia.org/Bipartisan_Campaign_Reform_Act%22) to include at the end of some of their political advertisements. This cycle, [according to the nonpartisan firm AdImpact](%22https://www.cnn.com/2022/08/11/politics/political-ad-spending-midterms/index.html%22), an astounding **\$9.7 billion** will be dropped for political ad spending in total, higher than even the \$9.0 billion spent during the 2020 presidential election and over twice as much as was spent (\$4 billion) during the last midterm elections in 2018.
+
+The two parties may be throwing their entire coffers at this election due to control of both the House and the Senate being in reach for either party, but how much does all this ad spending actually move the needle in these elections? Will it help us predict election day this year, which is 4 weeks from this post?
+
+# A Look Back at 2018
+
+To determine how ad spending can potentially impact my forecasting for the upcoming midterms, I will go back to the data from the most recent midterm elections in 2018. Although there is already some data for ad spending for the 2022 cycle, I am choosing to use the existing data on ad spending in 2018 as a stand-in since the 2022 data is not as complete and easily accessible.
+
+First, I wanted to get a sense of the total ad spending based on party for the months leading up to the election (August through November). The graph below represents a visualization of this ad spending.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -25,22 +37,24 @@ ad_creative  <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_20
 ad_issues <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_issues_2012-2018.csv")
 ```
 
-```{r}
+```{r 2018 plot, message=FALSE}
+## Plot of 2018 midterms total ad spend by party
 ad_issues %>%
-  # mutate(year = as.numeric(substr(airdate, 1, 4))) %>%
   mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
-  filter(cycle %in% c(2012, 2014, 2016, 2018), month > 7) %>%
+  filter(cycle == 2018, month > 7) %>%
   group_by(cycle, airdate, party) %>%
   summarise(total_cost = sum(est_cost)) %>%
   ggplot(aes(x=airdate, y=total_cost, color=party)) +
-  # scale_x_date(date_labels = "%b, %Y") +
   scale_y_continuous(labels = dollar_format()) +
   scale_color_manual(values = c("blue","red"), name = "") +
   geom_line() + geom_point(size=0.5) +
-  facet_wrap(cycle ~ ., scales="free") +
-  xlab("") + ylab("ad spend") +
+  xlab("") + ylab("ad spend") + ggtitle("2018 Total Ad Spending By Party") +
   theme_bw() +
   theme(axis.title = element_text(size=15),
         axis.text = element_text(size=11),
         strip.text.x = element_text(size = 15))
 ```
+
+As you can see, before about mid-August, both parties are not spending too much money on political ads yet, but afterwards, spending starts to increase more and more rapidly as election day approaches, with the peak being right before November. This trend makes sense, as parties seemingly are responding to the pressure of election day getting nearer and nearer, especially for highly competitive races where the outcome could be anyone's guess.
+
+One interesting pattern is that each party's spend moves together - when Democrats pour a bucket of cash into new ads, Republicans come with their own bucket to try and match the increase. In the last few months and especially around mid-October to November, you can see that Democrats outspent Republicans even when there were dips in spending (quick side question: what are these dips caused by?). The fact that Democrats outspent Republicans by quite a bit overall potentially could have contributed to their net gain of 41 seats and thus winning control of the House, but the extra spend could also be due to the fact that this was a midterm year where the incumbent president was of the opposite party, which means Democrats would want to spend more and be on the attack.
