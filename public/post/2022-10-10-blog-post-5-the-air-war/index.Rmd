@@ -18,7 +18,7 @@ Every two years, the election cycle comes roaring back, and everything from TV c
 
 The two parties may be throwing their entire coffers at this election due to control of both the House and the Senate being in reach for either party, but how much does all this ad spending actually move the needle in these elections? Will it help us predict election day this year, which is 4 weeks from this post?
 
-# A Look Back at 2018
+# Looking Back at 2018
 
 To determine how ad spending can potentially impact my forecasting for the upcoming midterms, I will go back to the data from the most recent midterm elections in 2018. Although there is already some data for ad spending for the 2022 cycle, I am choosing to use the existing data on ad spending in 2018 as a stand-in since the 2022 data is not as complete and easily accessible.
 
@@ -35,6 +35,7 @@ library(scales)
 pvstate_df   <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/incumb_dist_1948-2020 (3).csv")
 ad_creative  <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_2006_2018.csv")
 ad_issues <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_issues_2012-2018.csv")
+house_cands_2022 <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 4/house_cands_2022.csv")
 ```
 
 ```{r 2018 plot, message=FALSE}
@@ -46,7 +47,7 @@ ad_issues %>%
   summarise(total_cost = sum(est_cost)) %>%
   ggplot(aes(x=airdate, y=total_cost, color=party)) +
   scale_y_continuous(labels = dollar_format()) +
-  scale_color_manual(values = c("blue","red"), name = "") +
+  scale_color_manual(values = c("dodgerblue","firebrick1"), name = "") +
   geom_line() + geom_point(size=0.5) +
   xlab("") + ylab("ad spend") + ggtitle("2018 Total Ad Spending By Party") +
   theme_bw() +
@@ -58,3 +59,151 @@ ad_issues %>%
 As you can see, before about mid-August, both parties are not spending too much money on political ads yet, but afterwards, spending starts to increase more and more rapidly as election day approaches, with the peak being right before November. This trend makes sense, as parties seemingly are responding to the pressure of election day getting nearer and nearer, especially for highly competitive races where the outcome could be anyone's guess.
 
 One interesting pattern is that each party's spend moves together - when Democrats pour a bucket of cash into new ads, Republicans come with their own bucket to try and match the increase. In the last few months and especially around mid-October to November, you can see that Democrats outspent Republicans even when there were dips in spending (quick side question: what are these dips caused by?). The fact that Democrats outspent Republicans by quite a bit overall potentially could have contributed to their net gain of 41 seats and thus winning control of the House, but the extra spend could also be due to the fact that this was a midterm year where the incumbent president was of the opposite party, which means Democrats would want to spend more and be on the attack.
+
+We know both parties spend more money than is probably socially responsible on their ads, but where exactly is all this money going? For each party, I decided to visualize the top 10 districts in which the most money was going.
+
+```{r District charts, message=FALSE}
+## Dem top 10 heavy spend districts
+ad_issues %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(cycle == 2018, month > 7) %>%
+  group_by(cycle, state, district, party) %>%
+  summarise(total_cost = sum(est_cost)) %>%
+  unite("district_id", state:district, sep = "-", remove = FALSE) %>% 
+  filter(party == "Democrat") %>% 
+  arrange(desc(total_cost)) %>% 
+  head(10) %>% 
+  ggplot(aes(x=reorder(district_id, -total_cost), y=total_cost)) +
+  scale_y_continuous(labels = dollar_format()) +
+  geom_col(fill = "dodgerblue") +
+  xlab("District") + ylab("Ad Spend") + ggtitle("Democratic Most Advertised 2018 Districts") +
+  theme_bw() +
+  theme(axis.title = element_text(size=15),
+        axis.text = element_text(size=11),
+        strip.text.x = element_text(size = 15))
+
+## Rep top 10 heavy spend districts
+ad_issues %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(cycle == 2018, month > 7) %>%
+  group_by(cycle, state, district, party) %>%
+  summarise(total_cost = sum(est_cost)) %>%
+  unite("district_id", state:district, sep = "-", remove = FALSE) %>% 
+  filter(party == "Republican") %>% 
+  arrange(desc(total_cost)) %>% 
+  head(10) %>% 
+  ggplot(aes(x=reorder(district_id, -total_cost), y=total_cost)) +
+  scale_y_continuous(labels = dollar_format()) +
+  geom_col(fill = "firebrick1") +
+  xlab("District") + ylab("Ad Spend") + ggtitle("Republican's Most Advertised 2018 Districts") +
+  theme_bw() +
+  theme(axis.title = element_text(size=15),
+        axis.text = element_text(size=11),
+        strip.text.x = element_text(size = 15))
+```
+
+Some of the same districts like CA-10 and FL-26 appear on both graphs, but for the most part, the districts where the most money is spent don't line up between parties as evenly as one might think. A few states show up often on both graphs, namely California, Texas, and Florida, which are all more populated states with more congressional districts than other states in the country.
+
+# Moving Forward to 2022: My Models and Their Predictions
+
+**Important note before I continue**: In the past few weeks, I have been trying to forecast the 2022 election results on the national level, but beginning this week, I will provide my forecast and future updates at the congressional district level. For this week in particular, my model will focus on just ad spending and incumbency as the main variables.
+
+For the first model, I will incorporate just total ad spending by Democrats from 2018 to predict Democratic voteshare in 2022. The second model will incorporate total ad spending by Democrats from 2018 and earlier (I am leaving out 2020 due to a lack of ad data for that year) combined with variables indicating the incumbent party and whether the seat is open.
+
+```{r clean and join 2018}
+## Clean data
+pvstate_df$district_num <- as.numeric(pvstate_df$district_num)
+
+pvstate_2018 <- pvstate_df %>% 
+  mutate(district_id = if_else(district_id %in% c("AK00", "DE00", "MT00", "ND00", "SD00", "VT00", "WY00"),
+                            gsub("00", "01", district_id), district_id),
+         district_num = if_else(district_num == 0, 1, district_num)) %>% 
+  rename(district = district_num) %>% 
+  filter(year == 2018)
+
+ad_2018 <- ad_issues %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(cycle == 2018 & month > 7) %>%
+  rename(year = cycle) %>% 
+  group_by(year, airdate, party) %>%
+  mutate(total_cost = sum(est_cost)) %>%
+  select(year, airdate, state, district, party, total_cost) %>% 
+  filter(party == "Democrat")
+
+ad_2018$district <- as.numeric(ad_2018$district)
+
+## Join data
+ad_pvstate_2018 <- left_join(pvstate_2018, ad_2018, by = c("year", "state", "district"))
+```
+
+```{r clean and join all}
+## Clean data
+pvstate_all <- pvstate_df %>% 
+  mutate(district_id = if_else(district_id %in% c("AK00", "DE00", "MT00", "ND00", "SD00", "VT00", "WY00"),
+                            gsub("00", "01", district_id), district_id),
+         district_num = if_else(district_num == 0, 1, district_num),
+         incumbent_party = if_else(president_party == "D", 1, 0),
+         open_seat = if_else(RepStatus == "Challenger" & DemStatus == "Challenger", 1, 0)) %>% 
+  rename(district = district_num) %>% 
+  filter(year != 2020)
+
+ad_all <- ad_issues %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(month > 7) %>%
+  rename(year = cycle) %>% 
+  group_by(year, airdate, party) %>%
+  mutate(total_cost = sum(est_cost)) %>%
+  select(year, airdate, state, district, party, total_cost) %>% 
+  filter(party == "Democrat")
+
+ad_all$district <- as.numeric(ad_all$district)
+
+## Join data
+ad_pvstate_all <- left_join(pvstate_all, ad_all, by = c("year", "state", "district"))
+```
+
+```{r 2018 model}
+## Linear model, 2018 only
+lm_2018 <- lm(DemVotesMajorPercent ~ total_cost, data = ad_pvstate_2018)
+summary(lm_2018)
+```
+
+The 2018-only ad spending model gives us a highly statistically significant result: as the total cost of Democratic ads in a district increases, the higher voteshare Democrats will receive. However, the increase is minuscule, and the adjusted R-squared is 0.0002158, which means this model explains almost none of the variance.
+
+```{r 2018 model prediction}
+# Calculate average ad spend in CA-25 in 2018
+ca25avg_2018 <- ad_pvstate_2018 %>% 
+  filter(district_id == "CA25") %>% 
+  summarise(total_cost = mean(total_cost)) %>% 
+  as.numeric()
+  
+# CA-27 2022 prediction
+predict(lm_2018, data.frame(total_cost = ca25avg_2018), interval = "prediction")
+```
+
+I struggled this week to make predictions for all districts across the country with this data, so above is the model's prediction for 2022 for the district I am following: CA-27. As of this blog post, [this district is as close to a toss-up as you can get]("https://projects.fivethirtyeight.com/2022-election-forecast/house/california/27/"). Due to redistricting, I used the old CA-25 district as a stand-in, since the area it covers is roughly similar to the now CA-27, and it was the incumbent Mike Garcia's old district. According to this model, Democrats will win about 50.5% of the vote in this district, which would mean Republican Mike Garcia losing this seat to the Democrats by a very narrow margin. However, the lower and upper bounds reflect much more extreme possibilities, highlighting the shakiness of this model further.
+
+```{r all years model}
+## Linear model, all years except 2020
+lm_all <- lm(DemVotesMajorPercent ~ total_cost + incumbent_party + open_seat,
+             data = ad_pvstate_all)
+summary(lm_all)
+```
+
+With the incumbency variables and polling data from additional years, this model is definitely better than the latter model. All variables have a statistically significant impact. Interestingly, open_seat has a negative impact, which means a seat being open should decrease Democratic voteshare. Being a Democratic incumbent has a small positive impact for Democratic voteshare, which hints at a potential incumbency advantage for Democrats seeking reelection. Nontheless, total ad spend from Democrats still has a miniscule positive effect on Democratic voteshare.
+
+The adjusted R-squared is 0.01364, which is still incredibly small despite the improvements from the other model. Thus, neither of this week's models are great for producing an accurate forecast.
+
+```{r all years model prediction}
+# Calculate average ad spend in CA-25 for 2012-2018 (not earlier bc of redistricting)
+ca25avg_2012_18 <- ad_pvstate_all %>% 
+  filter(district_id == "CA25", year >= 2012, year <= 2018) %>% 
+  summarise(total_cost = mean(total_cost, na.rm = TRUE)) %>% 
+  as.numeric()
+  
+# CA-27 2022 prediction
+predict(lm_all, data.frame(total_cost = ca25avg_2012_18, incumbent_party = 1,
+                           open_seat = 0), interval = "prediction")
+```
+
+Above is this model's CA-27 prediction. This model predicts 50.24% of the vote for Democrats, slightly higher than the other model but still suggesting an extremely close race. The upper and lower bounds are still wide, though again, they suggest outcomes that are possible but highly unlikely.
