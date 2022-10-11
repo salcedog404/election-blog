@@ -5,10 +5,42 @@ date: '2022-10-10'
 slug: []
 categories: []
 tags: []
-summary: Summary
+summary: In this post, I will take a look at how ad spending can impact voteshare on the district level and what this means for the 2022 election based on ad data from the 2018 election.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
 
 # Introduction
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+## Load packages
+library(tidyverse)
+library(readr)
+library(scales)
+
+## Load datasets
+pvstate_df   <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/incumb_dist_1948-2020 (3).csv")
+ad_creative  <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_2006_2018.csv")
+ad_issues <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_issues_2012-2018.csv")
+```
+
+```{r}
+ad_issues %>%
+  # mutate(year = as.numeric(substr(airdate, 1, 4))) %>%
+  mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  filter(cycle %in% c(2012, 2014, 2016, 2018), month > 7) %>%
+  group_by(cycle, airdate, party) %>%
+  summarise(total_cost = sum(est_cost)) %>%
+  ggplot(aes(x=airdate, y=total_cost, color=party)) +
+  # scale_x_date(date_labels = "%b, %Y") +
+  scale_y_continuous(labels = dollar_format()) +
+  scale_color_manual(values = c("blue","red"), name = "") +
+  geom_line() + geom_point(size=0.5) +
+  facet_wrap(cycle ~ ., scales="free") +
+  xlab("") + ylab("ad spend") +
+  theme_bw() +
+  theme(axis.title = element_text(size=15),
+        axis.text = element_text(size=11),
+        strip.text.x = element_text(size = 15))
+```
