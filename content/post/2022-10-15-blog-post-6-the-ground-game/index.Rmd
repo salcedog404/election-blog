@@ -12,6 +12,22 @@ summary: In this post, I will look at voter turnout and how it may be influenced
 
 # Introduction
 
+Last week, we looked at the "air war," where political campaigns fight each other through political advertisements that promote each side and/or attack the other side. Now, we are about to take the war to the ground as we look at how campaigns try to influence voter turnout in their favor.
+
+"Turnout" isn't just about the number or percentage of voters showing up to the polls - it's about *who* shows up and *why*. Campaigns usually invest in on-the-ground operations to do two things:
+
+**1. Mobilize voters:** For a candidate, having voters agree with you is not enough - they need to show up! By getting supporters to stop procrastinating filling out their mail-in ballot or helping them get to the polls on election day, campaigns can tap into their base and increase the number of votes they receive. Ideally, a candidate would want more people from their side to show up than the other side!
+
+**2. Persuade voters:** Besides getting people who already support or lean towards a candidate to actually go vote, campaigns also try to convince people who are on the fence or do not have strong leanings either way to join their side and vote.
+
+# What Can Predict Turnout?
+
+In this post, I wanted to look at two different variables - expert predictions and spending on political ads - and see if they had any sort of relationship to turnout.
+
+For expert predictions, I used data provided from class a few weeks ago that provides average expert ratings for many House districts. For many other districts, there are no ratings, but presumably that is because these districts were solidly in the camp of one party, and experts would likely want to focus on the races that are more competitive. Nevertheless, I included as much data as was available from 2012 to 2020.
+
+For ad spend, I used last week's data, but instead of limiting the data to just the few months before an election, I included all ad spend data available, as some districts did not have ad spend data for the few months before an election.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ## Load packages
@@ -94,9 +110,6 @@ expert_turnout_df <- left_join(cvap_pv_2012_20, expert_2012_20, by = c("year", "
 ```{r ad turnout, message=FALSE}
 ## Clean ad data
 ad_spend <- ads %>%
-  # Create month column and filter to ads August-November
-  #mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
-  #filter(month > 7) %>%
   # Calculate total ad spend for each district every year
   group_by(year, state, district) %>%
   summarize(total_cost = sum(est_cost)) %>%
@@ -116,7 +129,7 @@ ad_turnout_df <- left_join(cvap_pv_2012_20, ad_spend, by = c("year", "state", "c
 
 # Expert Predictions Turnout Model
 
-```{r expert model}
+```{r expert model, warning=FALSE}
 ## Linear model of average expert predictions
 lm_expert_turnout <- lm(turnout ~ avg_rating, expert_turnout_df)
 #summary(lm_expert_turnout)
@@ -133,9 +146,11 @@ ggplot(expert_turnout_df, aes(avg_rating, turnout)) +
   theme_bw()
 ```
 
+The avg_rating variable is coded on a scale from 1 to 7, with 1 representing an average expert rating of "Solid Democratic" for a district and 7 representing an average expert rating of "Solid Republican" for a district. The table and plot above suggest that an increase of 1 in rating - a one-unit shift towards Republicans - has just the slightest negative effect on percent turnout in an election. The coefficient is statistically significant, but the adjusted R-squared is only 0.01379, which suggests that this model is not too great at telling us how much average expert ratings can really be predictive of turnout, and since the effect is so small either way, it also doesn't tell us much about how much ground campaigns do anything for turnout.
+
 # Ad Spend Turnout Model
 
-```{r ad model}
+```{r ad model, warning=FALSE}
 ## Linear model of total ad spend
 lm_ad_turnout <- lm(turnout ~ total_cost, ad_turnout_df)
 #summary(lm_ad_turnout)
@@ -147,9 +162,16 @@ ggplot(ad_turnout_df, aes(total_cost, turnout)) +
   geom_smooth(method = "lm", formula = y ~ x, color = "green4") +
   labs(title = "Y = 0.47862 + 5.421e-09*X",
        subtitle = "P < 0.001, Adjusted R-squared = 0.02254",
-       x = "Total ad spend",
+       x = "Total ad spend ($)",
        y = "Percent turnout") +
   theme_bw()
 ```
 
-# Updated 2022 Model: District-level
+On the other hand, ad spend seems to have a different relationship to turnout based on this model. The more that each party spent on ads, the higher turnout seems to go based on the plot. However, most of the points are clustered to the left, so we have more limited data for those much bigger ad spends. In addition, although the adjusted R-squared of 0.02254 is higher than the expert prediction model, it is still very very low, so this model in particular would not be ideal for making predictions. If this model were much more robust and came to a similar conclusion, one could argue that what happens during the air war of political ads drives at least some people to go vote and potentially convinces others to pick a side, especially when tons of money is poured in.
+
+# Updated 2022 Model
+
+```{r 2022 model}
+
+```
+

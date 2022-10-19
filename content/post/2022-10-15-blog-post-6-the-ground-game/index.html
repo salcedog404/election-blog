@@ -13,15 +13,25 @@ summary: In this post, I will look at voter turnout and how it may be influenced
 <p><em>This blog is part of a series for Gov 1347: Election Analytics, a course at <a href="https://www.harvard.edu/">Harvard University</a> taught by Professor <a href="http://ryandenos.com/">Ryan D. Enos</a></em>.</p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
+<p>Last week, we looked at the “air war,” where political campaigns fight each other through political advertisements that promote each side and/or attack the other side. Now, we are about to take the war to the ground as we look at how campaigns try to influence voter turnout in their favor.</p>
+<p>“Turnout” isn’t just about the number or percentage of voters showing up to the polls - it’s about <em>who</em> shows up and <em>why</em>. Campaigns usually invest in on-the-ground operations to do two things:</p>
+<p><strong>1. Mobilize voters:</strong> For a candidate, having voters agree with you is not enough - they need to show up! By getting supporters to stop procrastinating filling out their mail-in ballot or helping them get to the polls on election day, campaigns can tap into their base and increase the number of votes they receive. Ideally, a candidate would want more people from their side to show up than the other side!</p>
+<p><strong>2. Persuade voters:</strong> Besides getting people who already support or lean towards a candidate to actually go vote, campaigns also try to convince people who are on the fence or do not have strong leanings either way to join their side and vote.</p>
+</div>
+<div id="what-can-predict-turnout" class="section level1">
+<h1>What Can Predict Turnout?</h1>
+<p>In this post, I wanted to look at two different variables - expert predictions and spending on political ads - and see if they had any sort of relationship to turnout.</p>
+<p>For expert predictions, I used data provided from class a few weeks ago that provides average expert ratings for many House districts. For many other districts, there are no ratings, but presumably that is because these districts were solidly in the camp of one party, and experts would likely want to focus on the races that are more competitive. Nevertheless, I included as much data as was available from 2012 to 2020.</p>
+<p>For ad spend, I used last week’s data, but instead of limiting the data to just the few months before an election, I included all ad spend data available, as some districts did not have ad spend data for the few months before an election.</p>
 </div>
 <div id="expert-predictions-turnout-model" class="section level1">
 <h1>Expert Predictions Turnout Model</h1>
-<div id="trlbunstif" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="rikxdhfawt" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#trlbunstif .gt_table {
+#rikxdhfawt .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -46,7 +56,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-left-color: #D3D3D3;
 }
 
-#trlbunstif .gt_heading {
+#rikxdhfawt .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -58,7 +68,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#trlbunstif .gt_title {
+#rikxdhfawt .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -70,7 +80,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-width: 0;
 }
 
-#trlbunstif .gt_subtitle {
+#rikxdhfawt .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -82,13 +92,13 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-top-width: 0;
 }
 
-#trlbunstif .gt_bottom_border {
+#rikxdhfawt .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#trlbunstif .gt_col_headings {
+#rikxdhfawt .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -103,7 +113,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#trlbunstif .gt_col_heading {
+#rikxdhfawt .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -123,7 +133,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   overflow-x: hidden;
 }
 
-#trlbunstif .gt_column_spanner_outer {
+#rikxdhfawt .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -135,15 +145,15 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 4px;
 }
 
-#trlbunstif .gt_column_spanner_outer:first-child {
+#rikxdhfawt .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#trlbunstif .gt_column_spanner_outer:last-child {
+#rikxdhfawt .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#trlbunstif .gt_column_spanner {
+#rikxdhfawt .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -155,7 +165,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   width: 100%;
 }
 
-#trlbunstif .gt_group_heading {
+#rikxdhfawt .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -180,7 +190,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: middle;
 }
 
-#trlbunstif .gt_empty_group_heading {
+#rikxdhfawt .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -195,15 +205,15 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: middle;
 }
 
-#trlbunstif .gt_from_md > :first-child {
+#rikxdhfawt .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#trlbunstif .gt_from_md > :last-child {
+#rikxdhfawt .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#trlbunstif .gt_row {
+#rikxdhfawt .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -222,7 +232,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   overflow-x: hidden;
 }
 
-#trlbunstif .gt_stub {
+#rikxdhfawt .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -235,7 +245,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#trlbunstif .gt_stub_row_group {
+#rikxdhfawt .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -249,11 +259,11 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: top;
 }
 
-#trlbunstif .gt_row_group_first td {
+#rikxdhfawt .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#trlbunstif .gt_summary_row {
+#rikxdhfawt .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -263,16 +273,16 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#trlbunstif .gt_first_summary_row {
+#rikxdhfawt .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#trlbunstif .gt_first_summary_row.thick {
+#rikxdhfawt .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#trlbunstif .gt_last_summary_row {
+#rikxdhfawt .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -282,7 +292,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-color: #D3D3D3;
 }
 
-#trlbunstif .gt_grand_summary_row {
+#rikxdhfawt .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -292,7 +302,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#trlbunstif .gt_first_grand_summary_row {
+#rikxdhfawt .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -302,11 +312,11 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-top-color: #D3D3D3;
 }
 
-#trlbunstif .gt_striped {
+#rikxdhfawt .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#trlbunstif .gt_table_body {
+#rikxdhfawt .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -315,7 +325,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-color: #D3D3D3;
 }
 
-#trlbunstif .gt_footnotes {
+#rikxdhfawt .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -329,7 +339,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#trlbunstif .gt_footnote {
+#rikxdhfawt .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -338,7 +348,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#trlbunstif .gt_sourcenotes {
+#rikxdhfawt .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -352,7 +362,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#trlbunstif .gt_sourcenote {
+#rikxdhfawt .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -360,64 +370,64 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#trlbunstif .gt_left {
+#rikxdhfawt .gt_left {
   text-align: left;
 }
 
-#trlbunstif .gt_center {
+#rikxdhfawt .gt_center {
   text-align: center;
 }
 
-#trlbunstif .gt_right {
+#rikxdhfawt .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#trlbunstif .gt_font_normal {
+#rikxdhfawt .gt_font_normal {
   font-weight: normal;
 }
 
-#trlbunstif .gt_font_bold {
+#rikxdhfawt .gt_font_bold {
   font-weight: bold;
 }
 
-#trlbunstif .gt_font_italic {
+#rikxdhfawt .gt_font_italic {
   font-style: italic;
 }
 
-#trlbunstif .gt_super {
+#rikxdhfawt .gt_super {
   font-size: 65%;
 }
 
-#trlbunstif .gt_footnote_marks {
+#rikxdhfawt .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#trlbunstif .gt_asterisk {
+#rikxdhfawt .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#trlbunstif .gt_indent_1 {
+#rikxdhfawt .gt_indent_1 {
   text-indent: 5px;
 }
 
-#trlbunstif .gt_indent_2 {
+#rikxdhfawt .gt_indent_2 {
   text-indent: 10px;
 }
 
-#trlbunstif .gt_indent_3 {
+#rikxdhfawt .gt_indent_3 {
   text-indent: 15px;
 }
 
-#trlbunstif .gt_indent_4 {
+#rikxdhfawt .gt_indent_4 {
   text-indent: 20px;
 }
 
-#trlbunstif .gt_indent_5 {
+#rikxdhfawt .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -449,18 +459,17 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   </tfoot>
 </table>
 </div>
-<pre><code>## Warning: Removed 1680 rows containing non-finite values (stat_smooth).</code></pre>
-<pre><code>## Warning: Removed 1680 rows containing missing values (geom_point).</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/expert%20model-1.png" width="672" /></p>
+<p>The avg_rating variable is coded on a scale from 1 to 7, with 1 representing an average expert rating of “Solid Democratic” for a district and 7 representing an average expert rating of “Solid Republican” for a district. The table and plot above suggest that an increase of 1 in rating - a one-unit shift towards Republicans - has just the slightest negative effect on percent turnout in an election. The coefficient is statistically significant, but the adjusted R-squared is only 0.01379, which suggests that this model is not too great at telling us how much average expert ratings can really be predictive of turnout, and since the effect is so small either way, it also doesn’t tell us much about how much ground campaigns do anything for turnout.</p>
 </div>
 <div id="ad-spend-turnout-model" class="section level1">
 <h1>Ad Spend Turnout Model</h1>
-<div id="kttfupimbv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="rnselwlygv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#kttfupimbv .gt_table {
+#rnselwlygv .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -485,7 +494,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-left-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_heading {
+#rnselwlygv .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -497,7 +506,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_title {
+#rnselwlygv .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -509,7 +518,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-width: 0;
 }
 
-#kttfupimbv .gt_subtitle {
+#rnselwlygv .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -521,13 +530,13 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-top-width: 0;
 }
 
-#kttfupimbv .gt_bottom_border {
+#rnselwlygv .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_col_headings {
+#rnselwlygv .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -542,7 +551,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_col_heading {
+#rnselwlygv .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -562,7 +571,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   overflow-x: hidden;
 }
 
-#kttfupimbv .gt_column_spanner_outer {
+#rnselwlygv .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -574,15 +583,15 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 4px;
 }
 
-#kttfupimbv .gt_column_spanner_outer:first-child {
+#rnselwlygv .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#kttfupimbv .gt_column_spanner_outer:last-child {
+#rnselwlygv .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#kttfupimbv .gt_column_spanner {
+#rnselwlygv .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -594,7 +603,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   width: 100%;
 }
 
-#kttfupimbv .gt_group_heading {
+#rnselwlygv .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -619,7 +628,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: middle;
 }
 
-#kttfupimbv .gt_empty_group_heading {
+#rnselwlygv .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -634,15 +643,15 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: middle;
 }
 
-#kttfupimbv .gt_from_md > :first-child {
+#rnselwlygv .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#kttfupimbv .gt_from_md > :last-child {
+#rnselwlygv .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#kttfupimbv .gt_row {
+#rnselwlygv .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -661,7 +670,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   overflow-x: hidden;
 }
 
-#kttfupimbv .gt_stub {
+#rnselwlygv .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -674,7 +683,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#kttfupimbv .gt_stub_row_group {
+#rnselwlygv .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -688,11 +697,11 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   vertical-align: top;
 }
 
-#kttfupimbv .gt_row_group_first td {
+#rnselwlygv .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#kttfupimbv .gt_summary_row {
+#rnselwlygv .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -702,16 +711,16 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#kttfupimbv .gt_first_summary_row {
+#rnselwlygv .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_first_summary_row.thick {
+#rnselwlygv .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#kttfupimbv .gt_last_summary_row {
+#rnselwlygv .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -721,7 +730,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_grand_summary_row {
+#rnselwlygv .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -731,7 +740,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#kttfupimbv .gt_first_grand_summary_row {
+#rnselwlygv .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -741,11 +750,11 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-top-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_striped {
+#rnselwlygv .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#kttfupimbv .gt_table_body {
+#rnselwlygv .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -754,7 +763,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-bottom-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_footnotes {
+#rnselwlygv .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -768,7 +777,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_footnote {
+#rnselwlygv .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -777,7 +786,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#kttfupimbv .gt_sourcenotes {
+#rnselwlygv .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -791,7 +800,7 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   border-right-color: #D3D3D3;
 }
 
-#kttfupimbv .gt_sourcenote {
+#rnselwlygv .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -799,64 +808,64 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   padding-right: 5px;
 }
 
-#kttfupimbv .gt_left {
+#rnselwlygv .gt_left {
   text-align: left;
 }
 
-#kttfupimbv .gt_center {
+#rnselwlygv .gt_center {
   text-align: center;
 }
 
-#kttfupimbv .gt_right {
+#rnselwlygv .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#kttfupimbv .gt_font_normal {
+#rnselwlygv .gt_font_normal {
   font-weight: normal;
 }
 
-#kttfupimbv .gt_font_bold {
+#rnselwlygv .gt_font_bold {
   font-weight: bold;
 }
 
-#kttfupimbv .gt_font_italic {
+#rnselwlygv .gt_font_italic {
   font-style: italic;
 }
 
-#kttfupimbv .gt_super {
+#rnselwlygv .gt_super {
   font-size: 65%;
 }
 
-#kttfupimbv .gt_footnote_marks {
+#rnselwlygv .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#kttfupimbv .gt_asterisk {
+#rnselwlygv .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#kttfupimbv .gt_indent_1 {
+#rnselwlygv .gt_indent_1 {
   text-indent: 5px;
 }
 
-#kttfupimbv .gt_indent_2 {
+#rnselwlygv .gt_indent_2 {
   text-indent: 10px;
 }
 
-#kttfupimbv .gt_indent_3 {
+#rnselwlygv .gt_indent_3 {
   text-indent: 15px;
 }
 
-#kttfupimbv .gt_indent_4 {
+#rnselwlygv .gt_indent_4 {
   text-indent: 20px;
 }
 
-#kttfupimbv .gt_indent_5 {
+#rnselwlygv .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -888,10 +897,9 @@ summary: In this post, I will look at voter turnout and how it may be influenced
   </tfoot>
 </table>
 </div>
-<pre><code>## Warning: Removed 1403 rows containing non-finite values (stat_smooth).</code></pre>
-<pre><code>## Warning: Removed 1403 rows containing missing values (geom_point).</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/ad%20model-1.png" width="672" /></p>
+<p>On the other hand, ad spend seems to have a different relationship to turnout based on this model. The more that each party spent on ads, the higher turnout seems to go based on the plot. However, most of the points are clustered to the left, so we have more limited data for those much bigger ad spends. In addition, although the adjusted R-squared of 0.02254 is higher than the expert prediction model, it is still very very low, so this model in particular would not be ideal for making predictions. If this model were much more robust and came to a similar conclusion, one could argue that what happens during the air war of political ads drives at least some people to go vote and potentially convinces others to pick a side, especially when tons of money is poured in.</p>
 </div>
-<div id="updated-2022-model-district-level" class="section level1">
-<h1>Updated 2022 Model: District-level</h1>
+<div id="updated-2022-model" class="section level1">
+<h1>Updated 2022 Model</h1>
 </div>
