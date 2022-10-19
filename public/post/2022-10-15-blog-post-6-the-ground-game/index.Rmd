@@ -5,7 +5,7 @@ date: '2022-10-19'
 slug: []
 categories: []
 tags: []
-summary: In this post, I will look at voter turnout and how it may be influenced by factors like expert predictions and ad spend. I will also update my model to incorporate turnout and make predictions at the district level.
+summary: In this post, I will look at voter turnout and how it may be influenced by factors like expert predictions and ad spend. I will also update my model to incorporate turnout and make a prediction for CA-27.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
@@ -169,9 +169,68 @@ ggplot(ad_turnout_df, aes(total_cost, turnout)) +
 
 On the other hand, ad spend seems to have a different relationship to turnout based on this model. The more that each party spent on ads, the higher turnout seems to go based on the plot. However, most of the points are clustered to the left, so we have more limited data for those much bigger ad spends. In addition, although the adjusted R-squared of 0.02254 is higher than the expert prediction model, it is still very very low, so this model in particular would not be ideal for making predictions. If this model were much more robust and came to a similar conclusion, one could argue that what happens during the air war of political ads drives at least some people to go vote and potentially convinces others to pick a side, especially when tons of money is poured in.
 
-# Updated 2022 Model
+# Updated 2022 Model for CA-27
 
-```{r 2022 model}
+Like last week, I could not get district-level predictions to work on the aggregate level, but I was able to build a model incorporating turnout, incumbency, and expert predictions to update my forecast for CA-27, the district I am following.
 
+```{r 2022 linear model}
+## Incumbency
+incumb_pv <- dist_pv_df %>% mutate(incumb = case_when(winner_party == 'R' & RepStatus == 'Incumbent' ~  TRUE,
+                              winner_party == 'D' & DemStatus == 'Incumbent' ~ TRUE,
+                              winner_party == 'R' & RepStatus == 'Challenger' ~  FALSE,
+                              winner_party == 'D' & DemStatus == 'Challenger' ~  FALSE)) %>% 
+  rename(cd = district_num) %>%
+  # Change cd column numbering for single-digit districts
+  mutate(cd = if_else(str_starts(cd, "0"), str_sub(cd, 2, -1), cd))
+# Change cd column to numeric
+incumb_pv$cd <- as.numeric(incumb_pv$cd)
+
+## Clean expert predictions df
+expert_2020 <- expert_district %>%
+  # Filter out 2022
+  filter(!year == 2022)
+# Change at large district numbering to 0
+expert_2020$cd <- str_replace(expert_2020$cd, "AL", "0")
+# Change cd column to numeric
+expert_2020$cd <- as.numeric(expert_2020$cd)
+
+## Merge CVAP and voteshare data for up to 2020
+cvap_pv_2020 <- left_join(incumb_pv, cvap_2012_20, by = c("year", "state", "cd", "st_cd_fips"))
+
+## Combine dfs
+model_data <- left_join(cvap_pv_2020, expert_2020, by = c("year", "state", "cd")) %>%
+  # Add totalvotes and turnout variables
+  mutate(totalvotes = (RepVotes + DemVotes),
+         turnout = (totalvotes/cvap))
+
+## Linear model
+lm_2022 <- lm(DemVotesMajorPercent ~ avg_rating + incumb + turnout, data = model_data)
+summary(lm_2022)
 ```
 
+This model has an adjusted R-squared of 0.7157, which is impressively high. However, only the avg_rating variable is statistically significant, which is not too surprising since better expert ratings for Republicans will likely translate to lower Democratic vote percentages.
+
+```{r 2022 prediction}
+## Subset 2022 data
+expert_ca <- expert_district %>% 
+  filter(year == 2022 & state == "California" & cd == "27") %>% 
+  select(avg_rating) %>% 
+  as.numeric()
+
+## Subset 2018 data
+turnout_ca <- model_data %>% 
+  filter(year == 2018 & state == "California" & cd == 25) %>% 
+  select(turnout) %>%
+  as.numeric()
+
+incumb_ca <- model_data %>% 
+  filter(year == 2018 & state == "California" & cd == 25) %>% 
+  select(incumb) %>% 
+  as.logical()
+
+# CA-27 2022 prediction
+predict(lm_2022, data.frame(avg_rating = expert_ca, incumb = incumb_ca,
+                           turnout = turnout_ca), interval = "prediction")
+```
+
+Above is the predicted Democratic percent voteshare for the district based on this model. Last week, both the models I used suggests Democratic challenger Christy Smith would win just slightly over 50% of the vote, but this model predicts she will win about 49.48% of the vote, which would be an extremely narrow loss. The lower and upper bounds are wide, but unlike last week, they are arguably more realistic possibilities. Nonetheless, I continue to expect this election to be a nail-biter.
