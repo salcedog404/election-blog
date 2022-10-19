@@ -1,5 +1,5 @@
 ---
-title: 'Blog Post 5: The Air War'
+title: 'Blog Post 5 - The Air War'
 author: Giovanni Salcedo
 date: '2022-10-10'
 slug: []

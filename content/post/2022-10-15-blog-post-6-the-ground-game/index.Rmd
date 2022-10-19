@@ -1,13 +1,155 @@
 ---
-title: 'Blog Post 6: The Ground Game'
+title: 'Blog Post 6 - The Ground Game'
 author: Giovanni Salcedo
-date: '2022-10-15'
+date: '2022-10-19'
 slug: []
 categories: []
 tags: []
-summary: Placeholder
+summary: In this post, I will look at voter turnout and how it may be influenced by factors like expert predictions and ad spend. I will also update my model to incorporate turnout and make predictions at the district level.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
 
 # Introduction
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+## Load packages
+library(tidyverse)
+library(readr)
+library(gtsummary)
+
+## Load datasets with prelim cleaning
+# CVAP
+cvap_district <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 6/cvap_district_2012-2020_clean.csv") %>%
+  # Rename geoid
+  rename(st_cd_fips = geoid) %>% 
+  # Remove unnecessary columns
+  select(-...1, -...2)
+
+# Expert predictions
+expert_district <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 4/District level forecast/expert_rating.csv") %>% 
+  # Select relevant columns
+  select(year, state, district, avg_rating) %>% 
+  # Rename district column
+  rename(cd = district)
+
+# Ad spend
+ads <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 5/ads_issues_2012-2018.csv") %>% 
+  # Rename cycle
+  rename(year = cycle) %>% 
+  # Remove unnecessary column
+  select(-...1)
+
+# District voteshares
+dist_pv_df <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 6/incumb_dist_1948-2020 (3).csv") %>% 
+  # Remove unnecessary columns
+  select(-...1, -...2)
+```
+
+```{r expert turnout}
+## Clean district voteshare df
+dist_pv_2012_20 <- dist_pv_df %>%
+  # Filter for years 2012-2020
+  filter(year >= 2012) %>% 
+  rename(cd = district_num) %>%
+  # Change cd column numbering for single-digit districts
+  mutate(cd = if_else(str_starts(cd, "0"), str_sub(cd, 2, -1), cd))
+# Change cd column to numeric
+dist_pv_2012_20$cd <- as.numeric(dist_pv_2012_20$cd)
+
+## Clean CVAP df
+cvap_2012_20 <- cvap_district %>%
+  # Filter out 2019 data and District of Columbia data
+  filter(year != 2019, state != "District of Columbia")
+# Add spaces between state names with multiple words
+cvap_2012_20$state <- str_replace(cvap_2012_20$state, "New", "New ")
+cvap_2012_20$state <- str_replace(cvap_2012_20$state, "North", "North ")
+cvap_2012_20$state <- str_replace(cvap_2012_20$state, "South", "South ")
+cvap_2012_20$state <- str_replace(cvap_2012_20$state, "West", "West ")
+cvap_2012_20$state <- str_replace(cvap_2012_20$state, "Rhode", "Rhode ")
+# Change at large district numbering to 0
+cvap_2012_20$cd <- str_replace(cvap_2012_20$cd, "AL", "0")
+# Change cd column to numeric
+cvap_2012_20$cd <- as.numeric(cvap_2012_20$cd)
+
+## Clean expert predictions df
+expert_2012_20 <- expert_district %>%
+  # Filter for years 2012-2020
+  filter(year >= 2012 & year <= 2020)
+# Change at large district numbering to 0
+expert_2012_20$cd <- str_replace(expert_2012_20$cd, "AL", "0")
+# Change cd column to numeric
+expert_2012_20$cd <- as.numeric(expert_2012_20$cd)
+
+## Merge CVAP and voteshare data
+cvap_pv_2012_20 <- left_join(dist_pv_2012_20, cvap_2012_20, by = c("year", "state", "cd", "st_cd_fips"))
+# Add expert prediction data
+expert_turnout_df <- left_join(cvap_pv_2012_20, expert_2012_20, by = c("year", "state", "cd")) %>%
+  # Add totalvotes and turnout variables
+  mutate(totalvotes = (RepVotes + DemVotes),
+         turnout = (totalvotes/cvap))
+```
+
+```{r ad turnout, message=FALSE}
+## Clean ad data
+ad_spend <- ads %>%
+  # Create month column and filter to ads August-November
+  #mutate(month = as.numeric(substr(airdate, 6, 7))) %>%
+  #filter(month > 7) %>%
+  # Calculate total ad spend for each district every year
+  group_by(year, state, district) %>%
+  summarize(total_cost = sum(est_cost)) %>%
+  rename(cd = district) %>%
+  # Change at large district numbering to 0 and change cd column numbering for single-digit districts
+  mutate(cd = if_else(str_starts(cd, "0"), str_sub(cd, 2, -1), cd),
+         cd = if_else(state %in% c("Alaska", "Delaware", "Montana", "North Dakota", "South Dakota", "Vermont", "Wyoming"), "0", cd))
+# Change cd column to numeric
+ad_spend$cd <- as.numeric(ad_spend$cd)
+
+## Join ad data with CVAP/voteshare data
+ad_turnout_df <- left_join(cvap_pv_2012_20, ad_spend, by = c("year", "state", "cd")) %>% 
+  # Add totalvotes and turnout variables
+  mutate(totalvotes = (RepVotes + DemVotes),
+         turnout = (totalvotes/cvap))
+```
+
+# Expert Predictions Turnout Model
+
+```{r expert model}
+## Linear model of average expert predictions
+lm_expert_turnout <- lm(turnout ~ avg_rating, expert_turnout_df)
+#summary(lm_expert_turnout)
+tbl_regression(lm_expert_turnout, intercept = TRUE)
+
+## Plot
+ggplot(expert_turnout_df, aes(avg_rating, turnout)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x, color = "darkorchid") +
+  labs(title = "Y = 0.591422 - 0.008581*X",
+       subtitle = "P < 0.05, Adjusted R-squared = 0.01379",
+       x = "Average expert rating",
+       y = "Percent turnout") +
+  theme_bw()
+```
+
+# Ad Spend Turnout Model
+
+```{r ad model}
+## Linear model of total ad spend
+lm_ad_turnout <- lm(turnout ~ total_cost, ad_turnout_df)
+#summary(lm_ad_turnout)
+tbl_regression(lm_ad_turnout, intercept = TRUE)
+
+## Plot
+ggplot(ad_turnout_df, aes(total_cost, turnout)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x, color = "green4") +
+  labs(title = "Y = 0.47862 + 5.421e-09*X",
+       subtitle = "P < 0.001, Adjusted R-squared = 0.02254",
+       x = "Total ad spend",
+       y = "Percent turnout") +
+  theme_bw()
+```
+
+# Updated 2022 Model: District-level
