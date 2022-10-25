@@ -1,0 +1,963 @@
+---
+title: Shocks
+author: "Kiara Hernandez"
+date: \today
+institute: Harvard University
+fontsize: 10pt
+output:
+ beamer_presentation:
+    keep_tex: true
+    theme: metropolis
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: zenburn
+    incremental: false
+classoption: "handout"
+header-includes:
+  \setbeamercolor{frametitle}{bg=purple}
+  \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+---
+
+
+## Today's agenda
+
+* **Review: prediction with GLM
+  - Blog tip: remember to include prediction intervals! We care about uncertainty in our predictions
+
+* **Prediction: why use demographic variables?**
+    1. to simulate \textcolor{purple}{surges} from a particular bloc
+    2. to capture correlations between districts (i.e. build a \textcolor{purple}{pooled model})
+    3. think about the relationship between shocks and surges
+      - Mobilization vs. persuasion 
+
+* **Discussion: do shocks \underline{really} affect election outcomes?**
+    * What can we learn from the Dobbs Supreme Court decision (current)?
+    * Lessons learned from shark attacks (historical)
+
+* **Discussion: if shocks have effects, does that mean voters are irrational and incompetent?**
+
+* **Discussion: Shocks blog brainstorm**
+    * Discussion in small groups
+
+
+# Prediction: why use demographic variables?
+
+## Why use demographic variables?
+
+Certain demographic blocs have either \underline{historically} (i.e. predictably) and/or 
+\underline{contextually} (i.e. unpredictably) mobilized in elections:
+
+* \textbf{African-Americans} historically vote "steadfastly" for Democrats
+* \textbf{Working class whites} surged for Trump in 2016
+* \textbf{Religious whites} surged for Reagan in 1980
+* \textbf{Latinos} historically vote for Democrats, but especially surged during 2018 midterms
+* \textbf{... what groups, if any, do we expect to be mobilized, this election cycle? And what events may be mobilizing them (think back to lecture)} 
+
+Election observers tend to call these deviations that can't be predicted 
+from past behavior \textcolor{purple}{surges}. 
+
+\textit{A linear regression model specifically estimates coefficients 
+for variables to best predict historical (in-sample) behavior,} \newline \textit{but 
+we can then perturb those coefficients to simulate surges.}
+
+## Why use demographic variables: surges [1/2]
+
+\textbf{Fitting a predictive model of elections using changes in demographic blocs.} 
+
+```{r, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(tidyverse)
+library(stargazer)
+
+demog_df <- read_csv("demographic data/demographic_2009_2020.csv")
+
+demog_df_2020 <- read_csv("demographic data/demographic_2020.csv")
+
+demog_df_2009_2019 <- read_csv("demographic data/demographic_2009_2019.csv")
+
+```
+
+```{r, eval=TRUE, echo = FALSE, message=FALSE, warning=FALSE}
+incumb_dist_1948_2020_3_ <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/fundamentals II_ incumbency/incumb_dist_1948-2020 (3).csv")
+pvdistrict_df <- incumb_dist_1948_2020_3_
+
+# train data
+# years <- c(2010, 2012, 2014, 2016, 2018)
+
+dat <- pvdistrict_df %>% 
+  #filter(year %in% years) %>% 
+    inner_join(demog_df,
+              by = c("year" ,"st_cd_fips", "state")) %>%
+  # change age var name
+   dplyr::rename("age20_29" = "20_29", 
+                "age30_44" = "30_44",
+               "age45_64" = "45_64", 
+                "age65" = "65+",
+               "hispanic" = "hispanic or latino",
+               "indigenous" = "native american")
+
+
+# dat$region <- state.division[match(dat$state, state.abb)]
+# demog$region <- state.division[match(demog$state, state.abb)]
+
+dat_change <- dat %>%
+    group_by(st_cd_fips) %>%
+    mutate(Asian_change = asian - lag(asian, order_by = year),
+           Black_change = black - lag(black, order_by = year),
+           Hispanic_change = hispanic - lag(hispanic, order_by = year),
+           Indigenous_change = indigenous - lag(indigenous, order_by = year),
+           White_change = white - lag(white, order_by = year),
+           Female_change = female - lag(female, order_by = year),
+           Male_change = male - lag(male, order_by = year),
+           age20_change = age20_29 - lag(age20_29, order_by = year),
+           age3045_change = age30_44 - lag(age30_44, order_by = year),
+           age4565_change = age45_64 - lag(age45_64, order_by = year),
+           age65_change = age65+ - lag(age65, order_by = year)
+           )
+
+# # test data
+# dat20 <- pvdistrict_df %>% 
+#     inner_join(demog_df,
+#               by = c("year" ,"st_cd_fips", "state")) %>%
+#   # change age var name
+#    dplyr::rename("age20_29" = "20_29", 
+#                 "age30_44" = "30_44",
+#                "age45_64" = "45_64", 
+#                 "age65" = "65+",
+#                "hispanic" = "hispanic or latino",
+#                "indigenous" = "native american")
+# names(dat20)
+# 
+# dat_change20 <- dat20 %>%
+#     group_by(st_cd_fips) %>%
+#     mutate(Asian_change = asian - lag(asian, order_by = year),
+#            Black_change = black - lag(black, order_by = year),
+#            Hispanic_change = hispanic - lag(hispanic, order_by = year),
+#            Indigenous_change = indigenous - lag(indigenous, order_by = year),
+#            White_change = white - lag(white, order_by = year),
+#            Female_change = female - lag(female, order_by = year),
+#            Male_change = male - lag(male, order_by = year),
+#            age20_change = age20_29 - lag(age20_29, order_by = year),
+#            age3045_change = age30_44 - lag(age30_44, order_by = year),
+#            age4565_change = age45_64 - lag(age45_64, order_by = year),
+#            age65_change = age65+ - lag(age65, order_by = year)
+#            )
+# 
+# # subset 2020 for testing
+# dat_change20_test <- dat_change20 %>%
+#   filter(year == 2020)
+
+
+demog_df <- demog_df  %>% 
+  # change age var name
+   dplyr::rename("age20_29" = "20_29", 
+                "age30_44" = "30_44",
+               "age45_64" = "45_64", 
+                "age65" = "65+",
+               "hispanic" = "hispanic or latino",
+               "indigenous" = "native american")
+
+demog_2022 <- subset(demog_df, year == 2020)
+demog_2022 <- as.data.frame(demog_2022)
+
+demog_2022_change <- demog_df %>%
+    filter(year %in% c(2018, 2020)) %>%
+    group_by(st_cd_fips) %>%
+    mutate(Asian_change = asian - lag(asian, order_by = year),
+           Black_change = black - lag(black, order_by = year),
+           Hispanic_change = hispanic - lag(hispanic, order_by = year),
+           Indigenous_change = indigenous - lag(indigenous, order_by = year),
+           White_change = white - lag(white, order_by = year),
+           Female_change = female - lag(female, order_by = year),
+           Male_change = male - lag(male, order_by = year),
+           age20_change = age20_29 - lag(age20_29, order_by = year),
+           age3045_change = age30_44 - lag(age30_44, order_by = year),
+           age4565_change = age45_64 - lag(age45_64, order_by = year),
+           age65_change = age65+ - lag(age65, order_by = year)
+           ) %>%
+    filter(year == 2020)
+
+demog_2022_change <- as.data.frame(demog_2022_change)
+```
+
+
+\scriptsize
+```{r}
+mod_demog_change <- lm(DemVotesMajorPercent ~ Black_change + Hispanic_change + Asian_change +
+                                Female_change +
+                                age3045_change + age4565_change + age65_change
+                                , data = dat_change)
+```
+
+\scriptsize
+```{r, results = "asis", echo=FALSE, warning=FALSE, message=FALSE}
+stargazer(mod_demog_change, header=FALSE, type='latex', no.space = TRUE,
+          column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE,
+          keep = c(1:7, 62:66), omit.table.layout = "sn",
+          title = "The electoral effects of demographic change (across districts)")
+```
+
+<!-- 0.5*predict(mod_demog, newdata = demog_2020) +
+    0.5*predict(mod_poll, newdata = polls_2020) -->
+    
+## Why use demographic variables: surges [1/2]
+
+**Now, how would our forecast change if there's a Latino surge for Democrats in 2022?** \textbf{Suppose the effect of Latino bloc growth on Dem vote is \underline{doubled} this year (across districts).}
+
+* Historically estimated coefficient for \% Hispanic change: \textbf{2.9}
+
+```{r, eval=FALSE}
+predict(mod_demog_change, newdata = demog_2022_change)
+```
+
+* \textcolor{purple}{Hypothetical 2022 coefficient} for \% Hispanic change (2x surge): \textcolor{purple}{\textbf{5.8}} \pause
+
+
+```{r, eval=FALSE}
+predict(mod_demog_change, newdata = demog_2022_change) + 
+  (5.8-2.9)*demog_2022$hispanic
+
+```
+
+## Why use demographic variables: surges [1/2]
+
+```{r, eval = TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# lm with just demographics, no change
+mod_demog <- lm(DemVotesMajorPercent ~ black + hispanic + asian + indigenous +
+                         female + age30_44 + age45_64 + age65, data = dat)
+
+his_original <- data.frame(pred = predict(mod_demog, newdata = demog_2022),
+    st_cd_fips = demog_2022$st_cd_fips, state = demog_2022$state, district = demog_2022$district)
+
+his1 <- data.frame(pred = predict(mod_demog, newdata = demog_2022) +
+    (5.8-2.9)*demog_2022$hispanic,
+    st_cd_fips = demog_2022$st_cd_fips, state = demog_2022$state, district = demog_2022$district)
+
+# create district level maps
+### with original UCLA shapefiles ###
+require(tidyverse)
+require(ggplot2)
+require(sf)
+library(cowplot)
+
+# load geographic data
+get_congress_map <- function(cong=116) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+  st_read(fpath)
+}
+
+# load 116th congress
+cd116 <- get_congress_map(116)
+
+# change class
+cd116$DISTRICT <- as.numeric(cd116$DISTRICT)
+
+# mutate vars
+cd116 <- mutate(cd116, district = DISTRICT)
+cd116 <- mutate(cd116, state = STATENAME)
+
+# merge for hypothetical
+cd116$district <- as.character(cd116$district)
+cd116 <- cd116 %>% 
+  left_join(his_original, by=c("district", "state"))
+# merge for historical
+cd116_hyp <- cd116 %>% 
+  left_join(his1, by=c("district", "state"))
+
+# plot with simplify
+districts_simp <- rmapshaper::ms_simplify(cd116, keep = 0.01)
+districts_simp_hyp <- rmapshaper::ms_simplify(cd116_hyp, keep = 0.01)
+
+
+plot_original <- ggplot() + 
+  geom_sf(data=districts_simp,aes(fill = (pred >= 50)),
+          inherit.aes=FALSE,alpha=0.9) + 
+  #scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +
+  coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +  
+  theme_void() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+plot_1 <-ggplot() + 
+  geom_sf(data=districts_simp_hyp,aes(fill = (pred.x >= 50)),
+          inherit.aes=FALSE,alpha=0.9) + 
+  #scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +
+  coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +  
+  theme_void() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
+```{r, eval=FALSE, warning=FALSE, message=FALSE}
+plot_grid(plot_original, plot_1)
+
+```
+
+![](imgs/plot comp)
+
+\scriptsize
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+### pull 2020 CD map with tigris ###
+library(tigris)
+library(sf)
+library(ggplot2)
+shp_cd <- tigris::congressional_districts(
+      state = NULL,
+      cb = FALSE,
+      resolution = "500k",
+      year = 2020)
+# check that it plots itself
+# shp_cd %>% tigris::shift_geometry() %>% ggplot() + geom_sf()
+# store the plot output
+shp_cd <- shp_cd %>% tigris::shift_geometry()
+# mutate GEOID
+shp_cd <- shp_cd %>%
+  dplyr::rename(st_cd_fips = GEOID)
+# remember to simplify
+# shp_cd_simp <- rmapshaper::ms_simplify(shp_cd, keep = 0.01)
+# merge cd shape file by fips with original predictions
+shp_cd_simp_pred <- his_original %>%
+  inner_join(shp_cd, by = "st_cd_fips")
+# merge cd shape file by fips with hypothetical predictions
+shp_cd_simp_pred_his <- his1 %>%
+  inner_join(shp_cd, by = "st_cd_fips")
+
+# create map
+ library(RColorBrewer)
+
+ plot_original <- ggplot(data = shp_cd_simp_pred) +
+   geom_sf(color = NA, aes(geometry = geometry, fill = (pred >= 50), lwd = 0)) +
+  scale_fill_manual(values=brewer.pal(2,'YlOrRd'), na.value="grey") +
+   theme(rect = element_blank(),
+        panel.grid.major = element_line(colour = "transparent"),
+        axis.text.x = element_blank(),
+         axis.text.y = element_blank(),
+         axis.ticks = element_blank()) +
+   labs(title = "2022 Midterm Election Prediction",
+      subtitle = "historical Hispanic demographic change effect (2.9)",
+       fill = "")
+
+ plot_1 <- ggplot(data = shp_cd_simp_pred_his) +
+   geom_sf(color = NA, aes(geometry = geometry, fill = (pred >= 50), lwd = 0)) +
+ scale_fill_manual(values=brewer.pal(2,'YlOrRd'), na.value="grey") +
+   theme(rect = element_blank(),
+         panel.grid.major = element_line(colour = "transparent"),
+        axis.text.x = element_blank(),
+         axis.text.y = element_blank(),
+         axis.ticks = element_blank()) +
+   labs(title = "2022 Midterm Election Prediction",
+        subtitle = "hypothetical Hispanic demographic change effect (5.8)",
+        fill = "")
+ 
+library(cowplot)
+plot_grid(plot_original, plot_1)
+```
+
+
+## Why use demographic variables: surges [1/2]
+
+Previously, we fit a separate poll-based regression for \underline{each} district $\rightsquigarrow$
+\textit{assumes separate parameters for each district}:
+
+$$
+DemPV_{district} = f(\alpha_{district} + \beta_{1,district}x_1 + \ldots + \beta_{k,district} x_{k,district})
+$$
+\newline With our demographic bloc model, we fit one regression \underline{across} districts $\rightsquigarrow$
+\textit{assumes one set of parameters for all districts}:
+
+$$
+DemPV_{district} = f(\alpha + \beta_1 x_1 + \ldots + \beta_k x_k)
+$$
+\textbf{Q:} Why are some advantages of the latter?
+
+
+## Why \textit{else} use demographic variables?
+
+Previously, we fit a separate poll-based regression for \underline{each} district $\rightsquigarrow$
+\textit{assumes separate parameters for each district}\footnote{We lied to you last week! This is technically the proper notation for district-by-district models.} (\textcolor{purple}{unpooled model}):
+
+$$
+DemPV_{district} = f(\alpha_{district} + \beta_{1,district}x_1 + \ldots + \beta_{k,district} x_{k,district})
+$$
+With our demographic bloc model, we fit one regression \underline{across} district $\rightsquigarrow$
+\textit{assumes one set of parameters for all districts} (\textcolor{purple}{pooled model}):
+
+$$
+DemPV_{district} = f(\alpha + \beta_1 x_1 + \ldots + \beta_k x_k)
+$$
+\textbf{Q:} Why are some advantages of the latter?
+<!--
+- one set of parameters for a model means we don't assume districts are totally independent!
+- in some districts, we may not have enough data to estimate a model JUST for that district
+- if there's an error, its likely to be correlated across districts rather than just totally idiosyncratic
+-->
+
+## Why use demographic variables: across-district correlations [2/2]
+
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+pvdistrict_df <- incumb_dist_1948_2020_3_
+
+# subset to one state for example
+yrs <- c(2008, 2010, 2012, 2014, 2016, 2018, 2020)
+bama <- pvdistrict_df %>%
+  filter(year %in% yrs) %>%
+  filter(state == c("Alabama"))
+  
+pvcorr_df <- data.frame()
+for (st_cd_fips.x in unique(bama$st_cd_fips)) {
+  for (st_cd_fips.y in unique(bama$st_cd_fips)) {
+    ## to make sure we have complete pairwise set of observations
+    yr.x <- bama$year[bama$st_cd_fips == st_cd_fips.x]
+    yr.y <- bama$year[bama$st_cd_fips == st_cd_fips.y]
+    yrs <- base::intersect(yr.x, yr.y)  ## the `base::` is to avoid conflict with a `dplyr` function also called `intersect`
+    r.sq <- cor(bama$DemVotesMajorPercent[bama$st_cd_fips == st_cd_fips.x & bama$year %in% yrs],
+                bama$DemVotesMajorPercent[bama$st_cd_fips == st_cd_fips.y & bama$year %in% yrs],
+                use = "pairwise.complete.obs")
+    pvcorr_df <- bind_rows(pvcorr_df, data.frame(st_cd_fips.x, st_cd_fips.y, r.sq))
+  }
+}
+
+cd_order <- demog_2022_change$st_cd_fips[order(demog_2022_change$black)]
+pvcorr_df$st_cd_fips.x <- factor(pvcorr_df$st_cd_fips.x, levels = cd_order)
+pvcorr_df$st_cd_fips.y <- factor(pvcorr_df$st_cd_fips.y, levels = cd_order)
+
+pvcorr_df %>% 
+  filter(!is.na(st_cd_fips.x), !is.na(st_cd_fips.y)) %>%
+  ggplot(aes(x = st_cd_fips.x, y = st_cd_fips.y, fill = r.sq)) + 
+  geom_tile() +
+  xlab("") + ylab("") + 
+  scale_fill_gradient(low="yellow", high="purple", name="R-squared in\npopular vote\n2008-2020\nAlabama") +
+  xlab("<-- least Black districts in 2020          most Black districts in 2020 -->") +
+  theme(axis.text.x = element_text(angle=90, hjust=1),
+        axis.title.x = element_text(size=16))
+```
+
+```{r, eval=TRUE, echo=FALSE}
+cd_order <- demog_2022_change$st_cd_fips[order(demog_2022_change$black)]
+pvcorr_df$st_cd_fips.x <- factor(pvcorr_df$st_cd_fips.x, levels = cd_order)
+pvcorr_df$st_cd_fips.y <- factor(pvcorr_df$st_cd_fips.y, levels = cd_order)
+
+pvcorr_df %>% 
+  filter(!is.na(st_cd_fips.x), !is.na(st_cd_fips.y)) %>%
+  ggplot(aes(x = st_cd_fips.x, y = st_cd_fips.y, fill = r.sq)) + 
+  geom_tile() +
+  xlab("") + ylab("") + 
+  scale_fill_gradient(low="yellow", high="purple", name="R-squared in\npopular vote\n2008-2020\nAlabama") +
+  xlab("<-- least Black districts in 2020          most Black districts in 2020 -->") +
+  theme(axis.text.x = element_text(angle=90, hjust=1),
+        axis.title.x = element_text(size=16))
+```
+
+## Why use demographic variables: across-district correlations [2/2]
+
+```{r, eval=TRUE, echo=FALSE}
+cd_order <- demog_2022_change$st_cd_fips[order(demog_2022_change$hispanic)]
+pvcorr_df$st_cd_fips.x <- factor(pvcorr_df$st_cd_fips.x, levels = cd_order)
+pvcorr_df$st_cd_fips.y <- factor(pvcorr_df$st_cd_fips.y, levels = cd_order)
+
+pvcorr_df %>% 
+  filter(!is.na(st_cd_fips.x), !is.na(st_cd_fips.y)) %>%
+  ggplot(aes(x = st_cd_fips.x, y = st_cd_fips.y, fill = r.sq)) + 
+  geom_tile() +
+  xlab("") + ylab("") + 
+  scale_fill_gradient(low="yellow", high="purple", name="R-squared in\npopular vote\n2008-2020\nAlabama") +
+  xlab("<-- least Hispanic districts in 2020          most Hispanic districts in 2020 -->") +
+  theme(axis.text.x = element_text(angle=90, hjust=1),
+        axis.title.x = element_text(size=16))
+```
+
+## Why use demographic variables: across-state correlations [2/2]
+
+To recap:
+
+* A pooled model captures correlation across districts by using the same $\alpha$ and $\beta_1,\ldots,\beta_k$
+to predict each district's outcome.
+
+* A pooled model relies on less data from each district, thus "drawing strength" on less data-sparse district
+
+* \textbf{You can think about this as the "data borrowing" concept we've talked about in past weeks - you can use these correlations to update district's A's prediction \textit{if} district B's outcome is hypothetically known} 
+    * ex: \texttt{ricardofernholz.com/election} - an example to read through
+    
+\small 
+
+\textbf{Q:} Can I combine a \textit{pooled (i.e. correlated) model} with \textit{unpooled (i.e. idiosyncratic) models} fit to each district?
+
+\textbf{A:} Yes, through the power of ensembling! \textcolor{purple}{And with appropriate checks on the model performance!}
+
+\tiny
+
+```{r, eval=FALSE}
+for (s in st_cd_fips) {
+  DemPV_s <- 0.5 * predict(mod_demog_change, demog_2020_change %>% filter(st_cd_fips==s)) + 
+             0.5 * predict(mod_state_poll_glms[s], poll_pvstate_vep_df %>% filter(st_cd_fips==s, party=="democrat"))
+}
+```
+
+This is toy/example code.
+
+# Discussion: Do shocks really affect election outcomes?
+
+## Shocks?
+
+**Q:** What are \textit{examples} of **apolitical shocks** that would affect elections? \pause
+
+* **Natural disaster**: Shark attack (Achen and Bartels 2017), tornado (Healy and Malhotra 2010) $\rightsquigarrow$ \textcolor{red}{decreased} support for incumbents \pause
+* **Sports** (Healy, Mo, Malhotra 2010): college football team losing their game $\rightsquigarrow$  \textcolor{red}{decreased} support for incumbents \pause
+* **Lottery** (Bagues and Esteve-Volart 2016): Towns winning Spanish Christmas lottery $\rightsquigarrow$  \textcolor{green}{increased} support for incumbents \pause
+
+**Q: ** Why do we care about apolitical shocks? 
+
+<!-- It seems to be the evidence of **voter irrationality.** -->
+
+
+**Q:** What are \textit{examples} of **political shocks** that would affect elections? \pause
+
+* **Natural disaster**: Shark attack (Achen and Bartels 2017), tornado (Healy and Malhotra 2010) $\rightsquigarrow$ \textcolor{red}{decreased} support for incumbents \pause
+* **Sports** (Healy, Mo, Malhotra 2010): college football team losing their game $\rightsquigarrow$  \textcolor{red}{decreased} support for incumbents \pause
+* **Lottery** (Bagues and Esteve-Volart 2016): Towns winning Spanish Christmas lottery $\rightsquigarrow$  \textcolor{green}{increased} support for incumbents \pause
+
+**Q: ** What political shocks have there been during the current election cycle? 
+
+**Q: ** Why do we care about political shocks? 
+
+## The Dobbs Supreme Court decision (Roe v. Wade)
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(dotenv)
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+# # load up hidden api key
+# article_api <- "zbNGtPzlJflHASLOR1jGJDAngZjfCuNK"
+# #semantic_api <- Sys.getenv("SEMANTIC_API")
+# 
+# # set base url
+# base_url_art <- "http://api.nytimes.com/svc/search/v2/articlesearch.json?fq="
+# #base_url_sem <- "http://api.nytimes.com/svc/semantic/v2/concept/name"w
+# 
+# # set parameters
+# term <- "dobbs"
+# facet_field <- "day_of_week"
+# facet <- "true"
+# begin_date <- "20220101"
+# end_date <- "20221015"
+# complete_url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json?fq=dobbs&facet_field=day_of_week&facet=true&begin_date=20220101&end_date=20221015&api-key=zbNGtPzlJflHASLOR1jGJDAngZjfCuNK"
+# 
+# 
+# complete_url2 <-paste0(base_url_art,fq =term,"&facet_field=",facet_field,"&facet=",facet,"&begin_date=",begin_date,"&end_date=",end_date,"&api-key=",article_api,sep = "")
+# 
+# # import dataset to R
+# sus <- fromJSON(complete_url2) 
+# 
+# # view how many hits
+# sus$response$meta$hits
+# 
+# hits <- sus$response$meta$hits
+# cat("There were ",hits," hits for the search term Dobbs during 2022 to date",sep = "")
+# 
+# max_pages <- round((hits / 10) - 1)
+# 
+# # store all pages in list
+# pages <- list()
+# for(i in 0:max_pages){
+#     sus_df <- fromJSON(paste0(complete_url2, "&page=", i),
+#     flatten = TRUE) %>% 
+#     data.frame() 
+#   message("Retrieving page ", i)
+#   pages[[i+1]] <- sus_df
+#   Sys.sleep(6)
+# }
+# 
+# 
+# # trying again - WORKS!!!
+# sus0 <- fromJSON(paste0(complete_url2, "&page=0"), flatten = TRUE)
+# nrow(sus0$response$docs)
+# sus1 <- fromJSON(paste0(complete_url2, "&page=1"), flatten = TRUE)
+# nrow(sus1$response$docs)
+# sus2 <- fromJSON(paste0(complete_url2, "&page=2"), flatten = TRUE)
+# nrow(sus2$response$docs)
+# 
+# organizations <- rbind_pages(
+#   list(sus0$response$docs, sus1$response$docs, sus2$response$docs)
+# )
+# nrow(organizations)
+# 
+# pages <- list()
+# Sys.sleep(1) 
+# for(i in 0:24){
+#   mydata <- fromJSON(paste0(complete_url2, "&page=", i))
+#   message("Retrieving page ", i)
+#   pages[[i+1]] <- mydata$response$docs
+#   Sys.sleep(6) 
+# }
+# 
+# #combine all into one
+# organizations <- rbind_pages(pages)
+# 
+# #check output
+# nrow(organizations)
+# 
+# colnames(organizations)
+# 
+# 
+# # trying with hits
+# sus0 <- fromJSON(paste0(complete_url2, "&page=0"), flatten = TRUE)
+# nrow(sus0$response)
+# sus1 <- fromJSON(paste0(complete_url2, "&page=1"), flatten = TRUE)
+# nrow(sus1$response$docs)
+# sus2 <- fromJSON(paste0(complete_url2, "&page=2"), flatten = TRUE)
+# nrow(sus2$response$docs)
+# 
+# organizations <- rbind_pages(
+#   list(sus0$response, sus1$response, sus2$response)
+# )
+# nrow(organizations)
+# 
+# pages <- list()
+# Sys.sleep(1) 
+# for(i in 0:24){
+#   mydata <- fromJSON(paste0(complete_url2, "&page=", i)) 
+#   message("Retrieving page ", i)
+#   pages[[i+1]] <- mydata$response$docs
+#   Sys.sleep(6) 
+# }
+# 
+# pages <- as.data.frame(pages)
+# do.call(rbind.data.frame, pages)
+# library (plyr)
+# pages <- ldply(pages, data.frame)
+# data.frame(t(sapply(pages,c)))
+# rbind.fill(pages)
+# 
+# 
+# #combine all into one
+# mydata <- rbind_pages(pages)
+# 
+# #check output
+# nrow(mydata)
+# 
+# # save df
+# saveRDS(mydata, file = "dobbs_2022.RDS")
+
+# reload
+mydata <- readRDS("dobbs_2022.RDS")
+
+# check colnames
+# colnames(mydata)
+
+# visualization by month
+library(dplyr)
+month <- mydata %>% 
+  group_by(month = month(pub_date, label = T)) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(month, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "",
+         title = "NYT Articles mentioning Dobbs Supreme Court decision in 2022",
+         color = "")
+
+# visualization by day
+day <- mydata %>% 
+  group_by(month_day = paste0(month(pub_date, label = T),
+           day = day(pub_date))) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(month_day, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "",
+         title = "NYT Articles mentioning Dobbs Supreme Court decision in 2022",
+         color = "")
+
+# how about visualization by week
+# extract raw date
+mydata <- mydata %>% 
+  mutate(publ_date = substr(pub_date, 1, 10))
+
+# mutate week variable
+mydata <- mydata %>% 
+  mutate(week = strftime(publ_date, format = "%V"))
+
+# plot
+week <- mydata %>% 
+  group_by(week) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(week, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "Week",
+         title = "NYT Articles mentioning Dobbs Supreme Court decision in 2022",
+         color = "") + # now add line for when decision was leaked
+      geom_segment(x=("18"), xend=("18"),y=0,yend=37, lty=2, color="purple", alpha=0.4) +
+      annotate("text", x=("18"), y=35, label="Decision leaked", size=3) +
+  geom_segment(x=("25"), xend=("25"),y=0,yend=37, lty=2, color="red", alpha=0.4) +
+      annotate("text", x=("25"), y=35, label="Decision released", size=3) # now add line for when decision was actually made
+
+```
+```{r, eval=TRUE, echo=FALSE}
+# plot
+mydata %>% 
+  group_by(week) %>% 
+  dplyr::summarize(count = n()) %>% 
+  ggplot(aes(week, count, group = 1, color = count)) +
+    geom_line() +
+    labs(y = "Article Count", x = "Week",
+         title = "NYT Articles mentioning Dobbs Supreme Court decision in 2022",
+         color = "") + # now add line for when decision was leaked
+      geom_segment(x=("18"), xend=("18"),y=0,yend=37, lty=2, color="purple", alpha=0.4) +
+      annotate("text", x=("18"), y=35, label="Decision leaked", size=3) +
+  geom_segment(x=("25"), xend=("25"),y=0,yend=37, lty=2, color="red", alpha=0.4) +
+      annotate("text", x=("25"), y=35, label="Decision released", size=3) # now add line for when decision was actually made
+```
+
+
+## Questions
+\tiny
+**Q: ** What do you notice about the number of articles published before and after the Dobbs decision was leaked and released? \newline
+
+**Q: ** Are these "shocks," in terms of article count, long-lasting? What seems like a reasonable metric for shock longevity? \newline
+
+**Q: ** What can we infer, if anything, about the duration and strength of this particular shock, especially with regard to voter opinion/behavior? \newline
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# now compare this to generic ballot
+X538_generic_ballot_averages_2018_2022 <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Polling/Section data/final files/538_generic_ballot_averages_2018-2022.csv")
+gb <- X538_generic_ballot_averages_2018_2022
+
+# convert dat
+gb <- gb %>%
+  mutate(date_ = mdy(date)) %>%
+  mutate(year = substr(date_, 1, 4)) %>%
+  filter(year == 2022) %>%
+  mutate(week = strftime(date_, format = "%V")) # Jan 1 looks weird 
+
+# #get avg by party and week
+# dem <- gb %>%
+#   filter(candidate == 'Democrats')
+# x <- plyr::ddply(dem, .(week), function(z) mean(z$pct_estimate))
+# x$candidate <- c('Democrats')
+# x$avg_dem <- x$V1
+# x <- x %>%
+#   select(-V1)
+# x$avg_dem <-  round(x$avg_dem , digits = 1)
+#
+#
+# rep <- gb %>%
+#   filter(candidate == 'Republicans')
+# y <- plyr::ddply(rep, .(week), function(z) mean(z$pct_estimate))
+# y$candidate <- c('Republicans')
+# y$avg_rep <- y$V1
+# y <- y %>%
+#   select(-V1)
+# y$avg_rep <-  round(y$avg_rep, digits = 1)
+#
+# #put all data frames into list
+# df_list <- list(gb, x, y)
+#
+# #merge all data frames together
+# polls_df <- df_list %>% reduce(full_join, by=c("candidate", "week"))
+#
+# # remove NAs
+# polls_df[] <-  t(apply(polls_df, 1, function(x) c(x[!is.na(x)], x[is.na(x)])))
+#
+# polls_df <- polls_df %>%
+#   select(-avg_rep)
+#
+# polls_df$avg_support <- polls_df$avg_dem
+#
+# polls_df <- polls_df %>%
+#   select(-avg_dem)
+#
+# # keep only unique dates
+# polls_df <- polls_df %>%
+#   distinct(cycle, week, date_, avg_support, candidate) %>%
+#   filter(week != 52)
+
+# visualize polls
+# polls_df %>%
+#   #group_by(candidate == 'Democrats') %>%
+#   #mutate(date_ = as.Date(date_)) %>%
+#   ggplot(aes(x = week, y = avg_support,
+#              colour = candidate)) +
+#   geom_line(aes(group=candidate), size = 0.3) + geom_point(size = 0.3) +
+#     #scale_x_date(date_labels = "%b, %Y") +
+#   ylab("generic ballot support") + xlab("") +
+#     theme_classic() +
+#   # now add line for when decision was leaked and released
+#       geom_segment(x=("18"), xend=("18"),y=0,yend=33, lty=2, color="purple", alpha=0.4) +
+#       annotate("text", x=("18"), y=31, label="Decision leaked", size=2) +
+#   geom_segment(x=("25"), xend=("25"),y=0,yend=33, lty=2, color="red", alpha=0.4) +
+#       annotate("text", x=("25"), y=31, label="Decision released", size=2)
+
+```
+
+![](imgs/generic ballot dobbs)
+
+## Questions pt.2
+
+**Q: ** What changes do we see in the generic ballot in response to the Dobbs decision? \newline
+**Q: ** What additional evidence would be helpful in understanding Dobbs' effect on voter behavior? \newline
+**Q: ** Do you think we will see a \textbf{surge} in turnout or registration amongst certain demographic groups this cycle? \newline
+![](imgs/roe)
+<!-- {width=750px, height=550px} -->
+
+![](imgs/politico)
+<!-- {width=750px, height=550px} -->
+
+
+## A canonical debate: shark attacks (NJ, 1916)
+
+\footnotesize
+* **Achen and Bartels** say: \textcolor{red}{Beach towns} in NJ affected by shark attacks \textit{voted significantly less for the incumbent} than non-beach towns 
+* **Fowler and Hall** respond: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readstata13)
+
+### override default mgp in par to make better ticks
+par.gh <- function(..., mgp=c(0,.05,.05)) {
+  par(..., mgp=mgp)
+}
+
+### function to produce nice plots
+### preserves most defaults through "..."
+### defaults labels to blank, axes to missing, makes points look nice
+plot.gh <- function(..., xlab="", ylab="", xaxt="n", yaxt="n", pch=21, bg="gray80", col="black",bor_col="white", x_seq = NULL,  y_seq = NULL, bty=NULL, rect_col="gray90", do_axes=NULL, do_seq=T, outer.box=F, outer.box.col="black", grid_col="white", point.size=2, remove.axis=F) {
+  plot(..., xlab=xlab, ylab=ylab, xaxt=xaxt, yaxt=yaxt, pch=pch, bg=bg,  bty="n")
+  rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = rect_col, border= bor_col)
+  # Draw sequences in background
+  if(do_seq!=F){
+    grid(col=grid_col, lty=2)
+  }
+  # Add axis
+  if (!remove.axis) {
+    axis(side=1,lwd=0, lwd.ticks=1, tck=-0.01, col="white", col.axis="gray20", cex.axis=.8)
+    axis(side=2,lwd=0, lwd.ticks=1, tck=-0.01, las=1, col="white", col.axis="gray20", cex.axis=.8)
+  }
+  # Add points
+  points(...,pch=21, bg=bg, col=col, lwd=1.5, cex=point.size)
+  # Y/N add box around plot
+  if(outer.box==T){
+    box(col= outer.box.col)
+  }
+}
+
+### Michael Gill's brilliant function to make transparent colors
+makeTransparent<-function(someColor, alpha)
+{
+  newColor<-col2rgb(someColor)
+  apply(newColor, 2, function(curcoldata){rgb(red=curcoldata[1], green=curcoldata[2],
+                                              blue=curcoldata[3],alpha=alpha, maxColorValue=255)})
+}
+```
+
+
+```{r, echo=FALSE, fig.height=5}
+### town-level plot
+data <- read.dta13("NJ_TownData_RGraph.dta")
+data$mat <- 0
+data$mat[grep("Matawan", data$town)] <- 1
+data.o <- data[data$county=="Ocean",]
+cexs.o <- 1.2*(data.o$total1916 / max(data.o$total1916)) + .5
+cols.o <- ifelse(data.o$beach==1, "red", "gray50")
+cols.o[data.o$nearbeach==1] <- "royalblue"
+pchs.o <- ifelse(data.o$beach==1, 15,16)
+pchs.o[data.o$nearbeach==1] <- 17
+par.gh(mfrow=c(1,2)) # , oma=c(3,3,3,3), mar=c(1,1,1,1)
+plot.gh(x=data.o$vote1912, y=data.o$vote1916,bg="gray90", xlim=c(.1,.8), ylim=c(.1,.7), col="gray90")
+points(x=data.o$vote1912, y=data.o$vote1916, col=cols.o, pch=pchs.o, cex=cexs.o)
+points(x=data.o$vote1912[data.o$town=="Sea Side Park"], y=data.o$vote1916[data.o$town=="Sea Side Park"], cex=2)
+legend("topleft", bty="n", pch=c(15,17,16), col=c("red", "dodgerblue", "gray50"), c("Beach Towns", "Near-Beach Towns", "Non-Beach Towns"), cex=.8)
+arrows(x0=.36, x1=.41, y0=.54, y1=.56, length=.1, angle=20)
+mtext(side=2, line=2, "Wilson 2-Party Vote Share, 1916", cex=.9)
+mtext(side=1, line=1, "Wilson 3-Party Vote Share, 1912")
+mtext(side=3, line=.1, "Ocean County, NJ", font=2)
+text(x=.27, y=.54, "Sea Side Park", cex=.7)
+cexs <- 1.2*(data$total1916 / max(data$total1916)) + .5
+pchs <- ifelse(data$beach==1, 15,16)
+pchs[data$nearbeach==1] <- 17
+cols <- ifelse(data$beach==1, "red", "gray50")
+cols[data$nearbeach==1] <- "royalblue"
+plot.gh(x=data$vote1912, y=data$vote1916,bg="gray90", xlim=c(.1,.8), ylim=c(.1,.7), remove.axis=T, col="gray90")
+points(x=data$vote1912, y=data$vote1916, col=cols, pch=pchs, cex=cexs)
+points(x=data[data$mat==1,]$vote1912, y=data[data$mat==1,]$vote1916, cex=2)
+axis(side=1, lwd=0, cex.axis=.8)
+mtext(side=1, line=1, "Wilson 3-Party Vote Share, 1912")
+mtext(side=3, "All NJ Counties", font=2)
+legend("topleft", bty="n", pch=c(15,17,16,1), col=c("red", "dodgerblue", "gray50", "black"), c("Beach Towns", "Near-Beach Towns", "Non-Beach Towns", "Matawan Attacks"), pt.cex=c(1,1,1,2), cex=.8)
+```
+<!-- Lessons learned:
+* to look at how places vote, look at how they voted last year (stickiness)
+* check whether your data is/has outliers; also check how sensitive your data is to exclusion of outliers
+* Twyman's Law: if it's a buzzworthy or 'exciting finding' its almost always wrong
+-->
+
+* \footnotesize Including \textcolor{red}{Sea Side Park} (that was omitted) dampens the effect
+* \footnotesize Including all counties shows that (1) the \textcolor{red}{two beach counties} were very unusual outliers (2) \textcolor{red}{beach towns and near-beach/non-beach towns voted similarly} 
+
+# Discussion: If shocks have effects, does that mean voters are irrational and incompetent?
+
+## Rational?
+
+**Q:** How do voters \textit{rationally} consider the impact of shocks in their vote? \pause
+
+* **Consider what gov't could have done better** (Many seemingly apolitical shocks are not apolitical): \pause
+
+    * Better \textcolor{purple}{response} (Healy and Malhotra 2010): effects depend on whether the disaster declaration took place  \pause
+    * Better \textcolor{purple}{relief} (Gasper and Reeves 2011): when presidents reject governors' requests for federal aid $\rightsquigarrow$ punish presidents and reward governors
+    * Better \textcolor{purple}{preparation} 
+
+## Rational?
+
+**Q:** How do voters \textit{rationally} consider the impact of shocks in their vote? 
+
+* **Global comparison** (Powell \& Whitten 1993): Punish \textcolor{purple}{only when} the gov't is doing \textcolor{purple}{worse than other gov'ts}
+    * Ex: the speed of recovery from global economic crisis compared to other countries  \pause
+* **Forward-looking voting** (Leininger and Schaub 2020): Germans \textcolor{purple}{vote to align local incumbents with higher levels of government}—with expectation that this will help them through the COVID crisis 
+
+## Irrational?
+
+**Q:** How do voters \textit{irrationally} consider the impact of shocks in their vote? 
+
+* \textbf{Partisan bias} (Malhotra and Kuo 2008; Healy, Kuo, Malhotra 2014).
+
+    * Survey question: \texttt{"How much is [Official X] \textbf{to blame} for making American vulnerable to \textbf{the attacks on September 11?}"}
+    * Experimental variation: Randomly change the partisanship of \texttt{[Offical X]}
+    * Finding: The answer depends on the partisanship
+
+* \textbf{Myopic voting}: do not respond to policies related to disaster \textcolor{red}{preparedness}.
+
+    * Respond only to policies and relief right after the crisis has already happened (Healy and Malhotra 2010) $\rightsquigarrow$ create \textcolor{red}{perverse incentives} to (i) invest less on (more effective + less expensive) preventive measures and (ii) claim credit on performative ex-post measures
+
+
+## Breakout room: Shocks blog brainstorm
+
+
+\small
+\underline{Small group discussion:} How do you think shocks will factor into the election this year? Do you expect shocks to matter more for certain (groups of) voters or in certain races?
+
+## Blog Extensions
+
+* **NYT scrape and anticipated shocks**: Replicate the Dobbs NYT example from section, but with a different topic/issue that you believe has been a "shock" during the current cycle. Do your findings alter your predictions (hypothetically)? Explain why/ why not. 
+
+To replicated the section example, you will need to register for a NYT developer account and acquire an API key.
+
+See additional documentation on replicating the section example: 
+https://developer.nytimes.com/get-started \newline
+https://developer.nytimes.com/docs/articlesearch-product/1/overview \newline
+https://rpubs.com/justinmorgan/nytimesarticleapi
+
+
+* **Incorporate a pooled model into your prediction this week** If you want to just continue refining your current model, that is also fine, but write up a brief explanation as to why you've chosen not to incorporate a pooled model.
+

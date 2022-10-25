@@ -1,0 +1,14 @@
+---
+title: Blog Post 7 - Shocks
+author: Giovanni Salcedo
+date: '2022-10-25'
+slug: []
+categories: []
+tags: []
+summary: Placeholder
+---
+
+*This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+# Introduction
+
