@@ -5,7 +5,7 @@ date: '2022-10-25'
 slug: []
 categories: []
 tags: []
-summary: Placeholder
+summary: In this post, I go over what we've learned about shocks, and I update my nationwide and California district models.
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
