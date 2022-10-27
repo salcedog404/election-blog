@@ -72,10 +72,926 @@
 <p>The degree to which these “shocks” influence the outcome of the election likely varies by the type of shock and - in my view - the timing of the shock. As we discussed before, Dobbs is a good example of a major political shock, as the national political environment shifted towards the Democrats significantly for several months. Had the midterms been held in August, I believe Democrats would have been in the strongest possible position since they would still be riding the wave of momentum from the decision early in the summer, but because of the timing of the election, enough time has passed that the impact of Dobbs has begun to slowly decrease. Still, Democrats are probably in a better position heading into election day thanks to Dobbs than they normally would be for a midterm where they are the party in power (where losing seats in both chambers is all but expected).</p>
 <p>One example of timing that actually may have made a significant difference was back in the 2016 election, when former FBI director James Comey reopened the investigation into Hillary Clinton’s emails about a week before the election. Clinton’s poll numbers were strong throughout October, and it had seemed like the election would be hers to lose, but reopening the investigation just a week before the election tightened the race last minute, potentially contributing to Donald Trump’s shocking upset on election night.</p>
 </div>
-<div id="updated-2022-model" class="section level1">
-<h1>Updated 2022 Model</h1>
+<div id="updated-national-models" class="section level1">
+<h1>Updated National Models</h1>
 <p>Shockingly (pun intended), even though this week was about shocks, this blog post will serve more as a major update to my 2022 model than a post about shocks themselves. Although shocks like Dobbs are certainly significant, I ultimately decided that for my final model I would leave out shocks entirely due to their unpredictable nature.</p>
-<p>In addition, after continuing to play around with district-level forecasting, I also decided to return to forecasting on the national level, as I feel more confident in my ability to build a stronger national model in preparation for my final prediction, which will come out on November 7. In addition to national vote share, I will also now forecast national House seat share to paint a more complete picture of my election prediction. Finally, as I have been doing in the last few posts, I will continue to make predictions for CA-27, the district that I have been following.</p>
+<p>After continuing to play around with district-level forecasting, I also decided to return to forecasting on the national level, as I feel more confident in my ability to build a stronger national model in preparation for my final prediction, which will come out on November 7. Since I am sticking to a national-level prediction, I will not be doing a pooled model. In addition to national vote share, I will also now forecast national House seat share to paint a more complete picture of my election prediction.</p>
+<p>For each of my models, I chose to focus on four independent variables. Special thanks to Luke Tomes for the “party_power” dataset; I used it for my incumbency variables!</p>
+<p><strong>1. Unemployment rate:</strong> Specifically, the unemployment rate in the last month before the election. I use the last month of unemployment data since it is what people will be experiencing at the time of the election.</p>
+<p><strong>2. Average Democratic generic ballot support:</strong> I focus on the last 100 days of polling before the election.</p>
+<p><strong>3. Incumbent party in the House:</strong> One of the incumbency variables measures whether Democrats are in control of the House at the time of the election. “1” means they are, “0” means Republicans control the House.</p>
+<p><strong>4. Incumbent party of the president:</strong> The other incumbency variable measures whether the incumbent president at the time of the election is a Democrat (1) or a Republican (0). This variable is included based on the conventional wisdom that midterm elections are bad for the incumbent president’s party.</p>
+<div id="vjdsaveemz" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#vjdsaveemz .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#vjdsaveemz .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#vjdsaveemz .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#vjdsaveemz .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#vjdsaveemz .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#vjdsaveemz .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#vjdsaveemz .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#vjdsaveemz .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#vjdsaveemz .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#vjdsaveemz .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#vjdsaveemz .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#vjdsaveemz .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#vjdsaveemz .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vjdsaveemz .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#vjdsaveemz .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#vjdsaveemz .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vjdsaveemz .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#vjdsaveemz .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vjdsaveemz .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#vjdsaveemz .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vjdsaveemz .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#vjdsaveemz .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#vjdsaveemz .gt_left {
+  text-align: left;
+}
+
+#vjdsaveemz .gt_center {
+  text-align: center;
+}
+
+#vjdsaveemz .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#vjdsaveemz .gt_font_normal {
+  font-weight: normal;
+}
+
+#vjdsaveemz .gt_font_bold {
+  font-weight: bold;
+}
+
+#vjdsaveemz .gt_font_italic {
+  font-style: italic;
+}
+
+#vjdsaveemz .gt_super {
+  font-size: 65%;
+}
+
+#vjdsaveemz .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#vjdsaveemz .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#vjdsaveemz .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#vjdsaveemz .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#vjdsaveemz .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#vjdsaveemz .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#vjdsaveemz .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col"><strong>Characteristic</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>Beta</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>95% CI</strong><sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>p-value</strong></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">(Intercept)</td>
+<td class="gt_row gt_center">38</td>
+<td class="gt_row gt_center">29, 47</td>
+<td class="gt_row gt_center" style="font-weight: bold;"><0.001</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">UNRATE</td>
+<td class="gt_row gt_center">0.03</td>
+<td class="gt_row gt_center">-0.48, 0.53</td>
+<td class="gt_row gt_center">>0.9</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">avg_D_support</td>
+<td class="gt_row gt_center">0.30</td>
+<td class="gt_row gt_center">0.13, 0.48</td>
+<td class="gt_row gt_center" style="font-weight: bold;">0.001</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">house_incumb</td>
+<td class="gt_row gt_center">0.92</td>
+<td class="gt_row gt_center">-0.89, 2.7</td>
+<td class="gt_row gt_center">0.3</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">pres_incumb</td>
+<td class="gt_row gt_center">-2.4</td>
+<td class="gt_row gt_center">-3.9, -0.77</td>
+<td class="gt_row gt_center" style="font-weight: bold;">0.005</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="4">Adjusted R² = 0.468</td>
+    </tr>
+  </tfoot>
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="4"><sup class="gt_footnote_marks">1</sup> CI = Confidence Interval</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<p>Above is the regression output for the vote share model. As you can see, polls and the incumbent president’s party are the statistically significant variables in influencing Democratic vote share. In particular, one point of poll support boosts Dem vote share by 0.30%, while having an incumbent president who’s a Democrat decreases vote share by 2.4%. The adjusted R-squared is 0.468, one of the higher values I’ve been able to achieve for my national models.</p>
+<div id="fzammxwoyv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#fzammxwoyv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#fzammxwoyv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#fzammxwoyv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#fzammxwoyv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#fzammxwoyv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#fzammxwoyv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#fzammxwoyv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#fzammxwoyv .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#fzammxwoyv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#fzammxwoyv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#fzammxwoyv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#fzammxwoyv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#fzammxwoyv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fzammxwoyv .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#fzammxwoyv .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#fzammxwoyv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fzammxwoyv .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#fzammxwoyv .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fzammxwoyv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#fzammxwoyv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fzammxwoyv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#fzammxwoyv .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fzammxwoyv .gt_left {
+  text-align: left;
+}
+
+#fzammxwoyv .gt_center {
+  text-align: center;
+}
+
+#fzammxwoyv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#fzammxwoyv .gt_font_normal {
+  font-weight: normal;
+}
+
+#fzammxwoyv .gt_font_bold {
+  font-weight: bold;
+}
+
+#fzammxwoyv .gt_font_italic {
+  font-style: italic;
+}
+
+#fzammxwoyv .gt_super {
+  font-size: 65%;
+}
+
+#fzammxwoyv .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#fzammxwoyv .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#fzammxwoyv .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#fzammxwoyv .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#fzammxwoyv .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#fzammxwoyv .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#fzammxwoyv .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col"><strong>Characteristic</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>Beta</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>95% CI</strong><sup class="gt_footnote_marks">1</sup></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col"><strong>p-value</strong></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">(Intercept)</td>
+<td class="gt_row gt_center">92</td>
+<td class="gt_row gt_center">8.6, 176</td>
+<td class="gt_row gt_center" style="font-weight: bold;">0.032</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">UNRATE</td>
+<td class="gt_row gt_center">-0.35</td>
+<td class="gt_row gt_center">-5.0, 4.3</td>
+<td class="gt_row gt_center">0.9</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">avg_D_support</td>
+<td class="gt_row gt_center">2.9</td>
+<td class="gt_row gt_center">1.3, 4.5</td>
+<td class="gt_row gt_center" style="font-weight: bold;"><0.001</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">house_incumb</td>
+<td class="gt_row gt_center">24</td>
+<td class="gt_row gt_center">7.7, 41</td>
+<td class="gt_row gt_center" style="font-weight: bold;">0.005</td></tr>
+    <tr><td class="gt_row gt_left" style="font-weight: bold;">pres_incumb</td>
+<td class="gt_row gt_center">-14</td>
+<td class="gt_row gt_center">-29, 0.12</td>
+<td class="gt_row gt_center">0.052</td></tr>
+  </tbody>
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="4">Adjusted R² = 0.549</td>
+    </tr>
+  </tfoot>
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="4"><sup class="gt_footnote_marks">1</sup> CI = Confidence Interval</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<p>Above is the regression output for the new seat share model. Polls are again a statistically significant variable, but interestingly, the incumbent party for the House, not the president, is statistically significant here. Every point of poll support translates to a gain of about 2.4 seats for Dems, while having control of the House results in a gain of 24 seats, which I can see happening due to the advantages that incumbents have compared to challengers during elections. The adjusted R-squared for this model is 0.549, even higher than the vote share model!</p>
+</div>
+<div id="model-predictions" class="section level1">
+<h1>2022 Model Predictions</h1>
+<p><img src="http://example.org/post/2022-10-25-blog-post-7-shocks/index_files/figure-html/prediction%20plots-1.png" width="672" /><img src="http://example.org/post/2022-10-25-blog-post-7-shocks/index_files/figure-html/prediction%20plots-2.png" width="672" /></p>
+<p>The plots above visualize the potential predictive power of the vote share and seat share models. Most of the points seem to stick somewhat close to the line, but there are of course still some outliers in each model. Nonetheless, these models appear to be stronger than other versions that I have made so far this semester. What do they predict for 2022?</p>
+<pre><code>##        fit      lwr      upr
+## 1 50.03395 45.11606 54.95184</code></pre>
+<p>The vote share model predicts that Democrats will win about 50.03% of the popular vote, based on the most recent unemployment rate available <a href="https://tradingeconomics.com/united-states/unemployment-rate">(3.5%)</a>, an average of generic ballot support for Democrats from 100 days from November 8 to now, and the fact that Democrats currently hold both the House and the presidency. The upper and lower bounds are still pretty wide, which suggests this model needs more certainty to provide a better prediction. I can see this prediction coming out true if Democrats have a better than expected night, but I feel as though this prediction is now too optimistic for Democrats.</p>
+<pre><code>##        fit      lwr      upr
+## 1 229.7193 184.7472 274.6914</code></pre>
+<p>As for seats, Democrats under the seat share model are expected to win about 229-230 seats, which not only means they would hold on to their House majority, they also would expand on it by 9-10 seats (based on their current majority of 220 seats). Compared to the vote share model, this prediction seems even more optimistic, especially considering most experts are anticipating Democrats to lose control of the chamber, not gain seats. To improve my models ahead of my final prediction, I will explore adding other variables and potentially tweaking my existing ones to see if I can produce models with much more precise confidence intervals and ideally more realistic predictions!</p>
 </div>
 
 
@@ -93,7 +1009,7 @@
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-10-26 13:55:39.774346 -0400 EDT m=&#43;0.081808293">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-10-27 00:45:59.017462 -0400 EDT m=&#43;0.084761292">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 

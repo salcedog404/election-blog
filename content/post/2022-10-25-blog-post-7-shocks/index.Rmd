@@ -5,7 +5,7 @@ date: '2022-10-25'
 slug: []
 categories: []
 tags: []
-summary: In this post, I go over what we've learned about shocks, and I update my nationwide and California district models.
+summary: In this post, I will go over what we've learned about shocks, and I will update my nationwide models, adding a forecast for Democratic seat share!
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
@@ -20,16 +20,151 @@ The degree to which these "shocks" influence the outcome of the election likely 
 
 One example of timing that actually may have made a significant difference was back in the 2016 election, when former FBI director James Comey reopened the investigation into Hillary Clinton's emails about a week before the election. Clinton's poll numbers were strong throughout October, and it had seemed like the election would be hers to lose, but reopening the investigation just a week before the election tightened the race last minute, potentially contributing to Donald Trump's shocking upset on election night.
 
-# Updated 2022 Model
+# Updated National Models
 
 Shockingly (pun intended), even though this week was about shocks, this blog post will serve more as a major update to my 2022 model than a post about shocks themselves. Although shocks like Dobbs are certainly significant, I ultimately decided that for my final model I would leave out shocks entirely due to their unpredictable nature.
 
-In addition, after continuing to play around with district-level forecasting, I also decided to return to forecasting on the national level, as I feel more confident in my ability to build a stronger national model in preparation for my final prediction, which will come out on November 7. In addition to national vote share, I will also now forecast national House seat share to paint a more complete picture of my election prediction. Finally, as I have been doing in the last few posts, I will continue to make predictions for CA-27, the district that I have been following.
+After continuing to play around with district-level forecasting, I also decided to return to forecasting on the national level, as I feel more confident in my ability to build a stronger national model in preparation for my final prediction, which will come out on November 7. Since I am sticking to a national-level prediction, I will not be doing a pooled model. In addition to national vote share, I will also now forecast national House seat share to paint a more complete picture of my election prediction.
+
+For each of my models, I chose to focus on four independent variables. Special thanks to Luke Tomes for the "party_power" dataset; I used it for my incumbency variables!
+
+**1. Unemployment rate:** Specifically, the unemployment rate in the last month before the election. I use the last month of unemployment data since it is what people will be experiencing at the time of the election.
+
+**2. Average Democratic generic ballot support:** I focus on the last 100 days of polling before the election.
+
+**3. Incumbent party in the House:** One of the incumbency variables measures whether Democrats are in control of the House at the time of the election. "1" means they are, "0" means Republicans control the House.
+
+**4. Incumbent party of the president:** The other incumbency variable measures whether the incumbent president at the time of the election is a Democrat (1) or a Republican (0). This variable is included based on the conventional wisdom that midterm elections are bad for the incumbent president's party.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ## Load packages
 library(tidyverse)
 library(readr)
+library(gtsummary)
+library(lubridate)
+
+## Load and clean data
+# House voteshare and seatshare
+vote_seat <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/house_popvote_seats.csv") %>%
+  # Remove unnecessary columns
+  select(-...1, -AreaAll, -president_party, -H_incumbent_party_winner,
+         -H_incumbent_party_majorvote_pct, -H_incumbent_party)
+
+# National unemployment by quarter
+unemployment <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/unemployment_national_quarterly_final.csv") %>%
+  # Remove unnecessary columns
+  select(-...1, -...2) %>% 
+  # Filter for unemployment one month before election
+  filter(quarter_yr == 4)
+
+# Generic ballot polls
+polls <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/polls_df.csv") %>%
+  # Focus on polls no earlier than 100 days before election and remove post-election polls
+  filter(days_until_election <= 100 & days_until_election > 0) %>%
+  # Average poll support by party for each election year
+  group_by(year, party) %>% 
+  summarise(avg_D_support = mean(support)) %>% 
+  filter(party == "D") %>% 
+  select(-party)
+
+# Incumbency
+incumb <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 7/party_power.csv") %>% 
+  # Incumbent indicator variables
+  mutate(house_incumb = if_else(house_party_in_power_at_election == "D", 1, 0),
+         pres_incumb = if_else(pres_party_in_power_at_election == "D", 1, 0)) %>% 
+  select(Year, house_incumb, pres_incumb) %>% 
+  rename(year = Year)
+# Incumbency training data
+incumb_2020 <- incumb %>% 
+  filter(year != 2022)
+
+# 2022 generic ballot polls
+polls_2022 <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/538_generic_ballot_averages_2018-2022.csv") %>% 
+  filter(cycle == 2022)
+
+polls_2022$date <- mdy(polls_2022$date)
+
+polls_2022 <- polls_2022 %>% 
+  filter(date >= "2022-07-31", candidate == "Democrats") %>% 
+  summarise(avg_D_support = mean(pct_estimate))
 ```
 
+```{r merge}
+## Merge all datasets
+model_dat <- left_join(vote_seat, unemployment, by = "year") %>% 
+  left_join(polls, by = "year") %>% 
+  left_join(incumb_2020, by = "year")
+```
+
+```{r vote share model}
+## Dem two-party vote share model
+lm_voteshare <- lm(D_majorvote_pct ~ UNRATE + avg_D_support + house_incumb + pres_incumb,
+   model_dat)
+# Regression table
+tbl_regression(lm_voteshare, intercept = TRUE) %>% 
+  bold_p() %>% bold_labels() %>% 
+  add_glance_source_note(include = adj.r.squared)
+```
+
+Above is the regression output for the vote share model. As you can see, polls and the incumbent president's party are the statistically significant variables in influencing Democratic vote share. In particular, one point of poll support boosts Dem vote share by 0.30%, while having an incumbent president who's a Democrat decreases vote share by 2.4%. The adjusted R-squared is 0.468, one of the higher values I've been able to achieve for my national models.
+
+```{r seat share model}
+## Dem seat share model
+lm_seatshare <- lm(D_seats ~ UNRATE + avg_D_support + house_incumb + pres_incumb,
+   model_dat)
+# Regression table
+tbl_regression(lm_seatshare, intercept = TRUE) %>% 
+  bold_p() %>% bold_labels() %>% 
+  add_glance_source_note(include = adj.r.squared)
+```
+
+Above is the regression output for the new seat share model. Polls are again a statistically significant variable, but interestingly, the incumbent party for the House, not the president, is statistically significant here. Every point of poll support translates to a gain of about 2.4 seats for Dems, while having control of the House results in a gain of 24 seats, which I can see happening due to the advantages that incumbents have compared to challengers during elections. The adjusted R-squared for this model is 0.549, even higher than the vote share model!
+
+# 2022 Model Predictions
+
+```{r prediction plots}
+## Vote share model prediction plot
+ggplot(model_dat, aes(x = predict(lm_voteshare), y = D_majorvote_pct,
+                      label = year)) +
+  geom_text() +
+  geom_abline(intercept=0, slope=1, color = "red") +
+  geom_vline(xintercept = 50, linetype = "dotted") +
+  geom_hline(yintercept = 50, linetype = "dotted") +
+  labs(title = "Predicted vs. Observed Dem Two-Party Vote Share",
+       subtitle = "Dotted lines = 50% vote threshold",
+       x='Predicted vote share',
+       y='Observed vote share') +
+  theme_bw()
+
+## Seat share model prediction plot
+ggplot(model_dat, aes(x = predict(lm_seatshare), y = D_seats,
+                      label = year)) +
+  geom_text() +
+  geom_abline(intercept=0, slope=1, color = "blue") +
+  geom_vline(xintercept = 218, linetype = "dotted") +
+  geom_hline(yintercept = 218, linetype = "dotted") +
+  labs(title = "Predicted vs. Observed Dem Seat Share",
+       subtitle = "Dotted lines = 218 seat threshold for majority",
+       x='Predicted seat share',
+       y='Observed seat share') +
+  theme_bw()
+```
+
+The plots above visualize the potential predictive power of the vote share and seat share models. Most of the points seem to stick somewhat close to the line, but there are of course still some outliers in each model. Nonetheless, these models appear to be stronger than other versions that I have made so far this semester. What do they predict for 2022?
+
+```{r 2022 vote share prediction}
+## 2022 Dem vote share prediction
+predict(lm_voteshare, data.frame(UNRATE = 3.5, avg_D_support = polls_2022$avg_D_support,
+                                 house_incumb = 1, pres_incumb = 1), interval = "prediction")
+```
+
+The vote share model predicts that Democrats will win about 50.03% of the popular vote, based on the most recent unemployment rate available [(3.5%)](https://tradingeconomics.com/united-states/unemployment-rate), an average of generic ballot support for Democrats from 100 days from November 8 to now, and the fact that Democrats currently hold both the House and the presidency. The upper and lower bounds are still pretty wide, which suggests this model needs more certainty to provide a better prediction. I can see this prediction coming out true if Democrats have a better than expected night, but I feel as though this prediction is now too optimistic for Democrats.
+
+```{r 2022 seat share prediction}
+## 2022 Dem seat share prediction
+predict(lm_seatshare, data.frame(UNRATE = 3.5, avg_D_support = polls_2022$avg_D_support,
+                                 house_incumb = 1, pres_incumb = 1), interval = "prediction")
+```
+
+As for seats, Democrats under the seat share model are expected to win about 229-230 seats, which not only means they would hold on to their House majority, they also would expand on it by 9-10 seats (based on their current majority of 220 seats). Compared to the vote share model, this prediction seems even more optimistic, especially considering most experts are anticipating Democrats to lose control of the chamber, not gain seats. To improve my models ahead of my final prediction, I will explore adding other variables and potentially tweaking my existing ones to see if I can produce models with much more precise confidence intervals and ideally more realistic predictions!
