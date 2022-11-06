@@ -1,0 +1,390 @@
+---
+title: "Election Administration"
+subtitle: "Gov 1347: Election Analytics"
+author: Kiara Hernandez
+date: \today
+institute: Harvard University
+fontsize: 10pt
+output:
+ beamer_presentation:
+    keep_tex: true
+    theme: metropolis
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: zenburn
+    incremental: false
+header-includes:
+  - \setbeamercolor{frametitle}{bg=orange}
+  - \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+---
+
+## Today's agenda
+
+* **Why do we care about election admin?**
+
+* **Review: What do we know about the cost of voting (from discussion)?**
+    * Fundamental questions
+      - What is the relationship between the cost of voting index and turnout? Vote margin by party?
+      - How do we \textit{empirically} understand the causal relationship between COVI and election outcomes?
+    * How this might affect election night
+    
+* **Redistricting: What to do about it in our models**
+    * Fundamental questions
+
+      -How does (can) it substantively affect election outcomes?
+    * Suggestions for incorporating it into a predictive model
+    
+* **Updating our data**
+    * Pulling up-to-date polling and expert ratings
+    * Pulling 2022 district shapefiles from the Census
+
+# Why do we care about election admin?
+
+## What is election administration?
+
+\begin{table}
+\begin{tabular}{r|l}
+Component & Examples \\
+\hline
+\textbf{Information} & registration status, \\[-0.2em]
+& polling place look-up \\
+\textbf{Registration} & eligibility, roll-off \\
+\textbf{Convenience voting} & {vote-by-mail}, early voting \\
+\textbf{Ballot access} & wait times, photo ID, \\[-0.2em]
+& provisional balloting \\
+\textbf{Ballot count} & security, technology,  \\[-0.2em]
+& audits \\
+\textbf{News coverage} & exit polls, decision desks \\
+\textbf{Redistricting} & polling places, \textcolor{red}{incentives to vote (individual power)}
+\end{tabular}
+\end{table}
+
+## Discussion: what do we know about the cost of voting?
+
+-From discussion: 
+
+$U = pB - C + D$, where 
+-$U$ = Utilty \newline
+  -if $U$ > 0, vote \newline
+  -if $U$ < 0, don't vote \newline
+-$p$ = probability of casting pivotal vote \newline
+-$B$ = benefit of candidate winning \newline
+-$C$ = cost \newline
+-$D$ = expressive benefit of voting
+
+## COVI and turnout - visualization
+\tiny
+-What time trends do we see? \newline
+-What regional and state trends do we see?
+
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+library(sf)  ##'simple features'
+library(tmap) #for maps!
+library(tmaptools) #tmap extensions
+library(spData) ##data for example
+
+# master data
+Voting1996 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "1996")
+Voting2000 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2000")
+Voting2004 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2004")
+Voting2008 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2008")
+Voting2012 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2012")
+Voting2016 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2016")
+Voting2020 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2020")
+Voting2020covid <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2020CCOVI")
+Voting2022 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/Master 1996 2022 Election voting requirements.xlsx", sheet = "2022")
+
+VotingDataMaster <- bind_rows(Voting1996,Voting2000,Voting2004,Voting2008,Voting2012,Voting2016,Voting2020,Voting2022)
+
+VotingDataMaster <- VotingDataMaster %>%
+  mutate(OnlineRegistration = ifelse(NOonlineregistration == 0,'Yes','No'),
+         OnlineRegistration = ifelse(is.na(OnlineRegistration)==T,'No',OnlineRegistration),
+         HourWait = ifelse(ExcessiveWaitTime ==1, 'Yes','No'))
+
+# rankings
+covi_1996_2022 <- read_excel("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/COVI Values 1996-2022 website addl.xlsx") %>%
+  mutate(FinalCOVI = ifelse(year == 2022, COVI2022_IRT,FinalCOVI),
+         FinalRank = ifelse(year == 2022, COVI2022_IRTrank,FinalRank))%>%
+  select(state,year,FinalCOVI,FinalRank)
+
+# attach geographic data
+us_states <- us_states%>%
+  mutate(state = state.abb[match(NAME,state.name)])%>%
+  filter(GEOID!=11) #remove DC
+
+covi_1996_2022 <- left_join(us_states,
+                       covi_1996_2022,
+                       by = 'state')
+
+VotingDataMaster <- left_join(us_states,
+                       VotingDataMaster,
+                       by = c('state' = 'State'))
+# merge in turnout dfs
+# cvap
+library(readr)
+cvap_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/cvap_district_2012-2020_clean.csv")
+# cvap_df <- cvap_district_2012_2020_clean
+# district-level votes
+dist_pv_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/fundamentals II_ incumbency/incumb_dist_1948-2020 (3).csv")
+
+# select relevant years from voting data
+dist_pv_df <- dist_pv_df %>%
+  filter(year == 2012 | year == 2014 | year == 2016 | year == 2018 | year == 2020)
+
+# mutate geoid for merging
+cvap_df <- cvap_df %>%
+  dplyr::rename(st_cd_fips = geoid)
+
+# merge
+dist_pv_cvap <- dist_pv_df %>%
+  inner_join(cvap_df, by = c('st_cd_fips', 'year'))
+
+# mutate turnout
+dist_pv_cvap <- dist_pv_cvap %>%
+  mutate(totalvotes = RepVotes + DemVotes,
+         turnout = totalvotes/cvap)
+
+# merge in demographic data
+demog_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/laws and election admin/data/demographic_2009_2020.csv")
+
+# demographic surges
+demog_df <- demog_df %>% 
+  # change age var name
+   dplyr::rename("age20_29" = "20_29", 
+                "age30_44" = "30_44",
+               "age45_64" = "45_64", 
+                "age65" = "65+",
+               "hispanic" = "hispanic or latino",
+               "indigenous" = "native american")
+
+demog_df <- demog_df %>%
+    group_by(st_cd_fips) %>%
+    mutate(Asian_change = asian - lag(asian, order_by = year),
+           Black_change = black - lag(black, order_by = year),
+           Hispanic_change = hispanic - lag(hispanic, order_by = year),
+           Indigenous_change = indigenous - lag(indigenous, order_by = year),
+           White_change = white - lag(white, order_by = year),
+           Female_change = female - lag(female, order_by = year),
+           Male_change = male - lag(male, order_by = year),
+           age20_change = age20_29 - lag(age20_29, order_by = year),
+           age3045_change = age30_44 - lag(age30_44, order_by = year),
+           age4565_change = age45_64 - lag(age45_64, order_by = year),
+           age65_change = age65+ - lag(age65, order_by = year)
+           )
+
+# merge surges with turnout, pv
+dist_pv_cvap_demog <- dist_pv_cvap %>%
+  inner_join(demog_df, by = c('st_cd_fips', 'year'))
+
+# merge with original COVI rankings - on state, not district
+# rename state
+covi_1996_2022 <- covi_1996_2022 %>%
+  dplyr::rename(state_abb = state, state = NAME)
+
+demog_covi_df <- merge(covi_1996_2022, dist_pv_cvap_demog, by = c('state', 'year'))
+
+# clean it up - select relevant variables
+demog_covi_df <- demog_covi_df %>%
+  select('state', 'year', 'REGION', 'AREA', 'state_abb', 'FinalCOVI', 'FinalRank', "winner_party",
+         "RepVotes","RepCandidate","RepStatus","DemVotes","DemCandidate","DemStatus",
+         "RepVotesMajorPercent", "DemVotesMajorPercent", "winner_candidate","winner_candidate_inc", "st_cd_fips", "president_party",
+         "cvap", "totalvotes","turnout", "male","female","age20_29","age30_44","age45_64","age65","white","black",
+         "indigenous","asian","pacific islander","other","mixed","hispanic",
+         "Asian_change","Black_change","Hispanic_change","Indigenous_change","White_change","Female_change",
+         "Male_change","age20_change","age3045_change","age4565_change","age65_change")
+# create state-level variables to match COVI data
+# state-level turnout // state level votes and cvap
+demogS_covi_df <- demog_covi_df %>%
+  group_by(state, year) %>%
+  # dplyr::mutate(avg_state_turnout = mean(turnout)) %>%
+  dplyr::summarise(avg_state_turnout = mean(turnout),
+            st_dem_votes = sum(DemVotes),
+            st_cvap = sum(cvap)) %>%
+  as.data.frame() %>%
+  select(-geometry)
+# remerge with original df
+demog_covi_df <- merge(demog_covi_df, demogS_covi_df, by = c('state', 'year'))
+
+## visualization ##
+# covi x turnout - 2012
+# install.packages('ggh4x')
+library(ggh4x)
+plot <- ggplot(demog_covi_df,
+        mapping = aes(x = FinalRank, y = avg_state_turnout,
+       label = state_abb, colour = REGION))  + 
+  #facet_grid(cols = vars(year), scales = "free") + 
+  facet_wrap(~ year, scales='free_x') +
+  geom_point() +
+  #theme(panel.spacing = unit(2, "lines")) +
+  #force_panelsizes(cols = c(0.3, 1)) +
+  geom_text(hjust=0, vjust=0) +
+  geom_smooth(method = "lm", color = "red") +
+  theme(legend.position = "bottom")
+```
+\tiny
+```{r, echo=TRUE, eval=TRUE, warning=FALSE}
+plot
+```
+
+
+```{r, eval=TRUE, echo=FALSE, warning=FALSE}
+# linear regression
+fit1 <- lm(avg_state_turnout ~ FinalRank, data = demog_covi_df)
+# with controls
+fit2 <- lm(avg_state_turnout ~ FinalRank + black + age20_29, data = demog_covi_df)
+```
+
+## COVI and turnout - regression
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, message=FALSE, results='asis'}
+library(stargazer)
+stargazer(fit1, fit2, header=FALSE, type='latex', no.space = TRUE,
+          column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE,
+          keep = c(1:7, 62:66), omit.table.layout = "sn",
+          title = "State-level turnout and COVI")
+```
+
+
+## COVI and voteshare margin by party - visualization
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE}
+# state-level average dem voteshare
+demog_covi_df <- demog_covi_df %>%
+  group_by(state, year) %>%
+  dplyr::mutate(avg_state_demshare = mean(DemVotesMajorPercent))
+
+# visualization
+plot2 <- ggplot(demog_covi_df,
+        mapping = aes(x = FinalRank, y = avg_state_demshare,
+       label = state_abb, colour = REGION))  + 
+  facet_wrap(~ year, scales='free_x') +
+  geom_point() +
+  #theme(panel.spacing = unit(2, "lines")) +
+  #force_panelsizes(cols = c(0.3, 1)) +
+  geom_text(hjust=0, vjust=0) +
+  geom_smooth(method = "lm", color = "red") +
+  theme(legend.position = "bottom")
+```
+```{r, echo=TRUE, eval=TRUE, warning=FALSE}
+plot2
+```
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE}
+# linear regression
+fit3 <- lm(avg_state_demshare ~ FinalRank, data = demog_covi_df)
+# with controls
+fit4 <- lm(avg_state_demshare ~ FinalRank + black + age20_29, data = demog_covi_df %>%
+             filter(avg_state_demshare != 0 | avg_state_demshare != 1))
+```
+
+## COVI and voteshare margin by party - regression
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE, results='asis'}
+stargazer(fit3, fit4, header=FALSE, type='latex', no.space = TRUE,
+          column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE,
+          keep = c(1:7, 62:66), omit.table.layout = "sn",
+          title = "State-level Democratic voteshare and COVI")
+```
+
+## Prediction using COVI - can we predict the probability of Democrats winning in 2022 from historical COVI data?
+```{r, echo=FALSE, eval=TRUE, warning=FALSE}
+# training data - 1996-2018 (leaving out 2022)
+# define years
+yrs <- c(2012, 2014, 2016, 2018, 2020)
+train_covi_df <- demog_covi_df %>%
+  filter(year %in% yrs) %>%
+  group_by(state) %>% 
+  group_nest() %>% 
+  mutate(data = map(data, ~unnest(., cols = c())))
+  
+# test data - 2022
+test_covi_df <- covi_1996_2022 %>%
+  filter(year == 2022) %>%
+  group_by(state) %>% 
+  group_nest() %>%
+  mutate(data = map(data, ~unnest(., cols = c())))
+
+# fit training model - state-level 
+models <- train_covi_df %>% 
+  mutate(model = map(data, ~glm(cbind(st_dem_votes, st_cvap-st_dem_votes) ~ FinalRank, 
+                                data = .x, family = binomial))) %>% 
+  select(-data)
+
+# extract model results
+model_results <- models %>% 
+  mutate(mcf_r_squared = map_dbl(model, ~with(summary(.x), 1 - deviance/null.deviance)))
+
+# predict 2022 (with intervals!)
+pred_2022 <- test_covi_df %>%
+  # inner join as there may not be historical models for some districts
+  inner_join(models, by = c("state")) %>% 
+  mutate(preds = map(.x = model, .y = data, ~predict(object = .x, newdata = as.data.frame(.y),
+                                                     se.fit = TRUE,
+                                                     type = "response")),
+         lower = map_dbl(.x = preds, ~.x$fit - (2 * .x$se.fit)),
+         fitted = map_dbl(.x = preds, ~.x$fit),
+         upper = map_dbl(.x = preds, ~.x$fit + (2 * .x$se.fit))) %>%
+  select(state, lower, fitted, upper)
+
+st <- covi_1996_2022 %>%
+filter(year == 2022) %>%
+select(state, FinalRank) %>%
+filter(state != 'Rhode Island') %>%
+  as.data.frame()
+# merge
+pred_2022 <- merge(pred_2022, st, by = 'state')
+
+ggplot(pred_2022, aes(FinalRank, y=fitted)) + 
+  geom_point(alpha=.5) +
+  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial))
+```
+
+## Prediction using COVI - can we predict turnout from COVI?
+
+-Try this on your own! Would this be a more or less useful than predicting turnout based on historical turnout data?
+
+## Trying to empirically understand the relationship between election admin and voting
+
+-Read the following sections of this paper by Grimmer et al. (2018):
+  -INTRO; USE OF NATIONAL SURVEYS FOR STATE RESEARCH; ESTIMATING VOTER ID LAWS’ EFFECTS ON TURNOUT
+
+-In small groups, discuss the following questions:
+
+1) What makes identifying the effects of voter ID laws (and election admin more broadly) on turnout empirically challenging? (Think endogeneity)
+
+2) What analyses do the authors present as evidence?
+
+3) What should we take away normatively from a paper like this? 
+
+## The (maybe not so bad after all) bane of our existence as Midterm election forecasters: redistricting
+\tiny
+-High-level thoughts:
+
+(1) In general, we can assume that most districts retain a substantial portion of their previous voters from one redistricting cycle to the next
+
+  -We want to corroborate this, though — but how? $\rightarrow$ let's take a look at district-level population overlap between cycles
+  
+  -Courtesy of Chris Kenny from the Gov PhD program: '../section data/pop_overlap_vtd_estimates.csv' \newline
+    -What this tells us: an estimated x% of new district i in 2022 came from old districts {i,j,k} in 2012... \newline
+    -Population and VAP come from the 2020 Decennial Census \newline
+    -Take the map outputs from the 50-states simulations and gets a VTD (voting district) level estimate \newline
+      -https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/SLCD3E \newline
+
+  -What would be the best way to use this? No right answer, but a few suggestions:\newline
+  (a) interact the proportion overlap with the old district with IVs \newline
+    ex: interact with incumbency. This would dampen the effect of incumbency. In any interaction, you would basically being downweighting or upweighting accordingly. \newline
+    -Assess model fit with and without interactions \newline
+    
+## Redistricting options continued
+
+(2) Reconstructing the dependent variable \newline
+  -Recalculate new vote totals from historical vote totals at the precinct level for new districts $\rightarrow$ 
+  Lucy's VTD estimates! \newline
+  -Precinct boundaries do change some, so this approach does involve some error \newline
+  
+(3) Including a variable at the district level that accounts for changes in expert predictions, so if lean R/D doesn’t change between two districts from one redistricting cycle to the next, we may feel more comfortable making predictions based on last redistricting cycles' data \newline
+
+(4) Because we're using all districts 2012-2020 as the training data (as opposed to only one district 2012-2020) and applying national betas to the individual seat, we can feel more comfortable with our predictions \newline
+

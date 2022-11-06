@@ -1,0 +1,303 @@
+---
+title: "Issues and Ideology"
+subtitle: "Gov 1347: Election Analytics"
+author: Kiara Hernandez
+date: \today
+institute: Harvard University
+fontsize: 10pt
+output:
+ beamer_presentation:
+    keep_tex: true
+    theme: metropolis
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: zenburn
+    incremental: false
+header-includes:
+  - \setbeamercolor{frametitle}{bg=purple}
+  - \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(readr)
+library(usdata)
+library(stargazer)
+library(tidyverse)
+library(dplyr)
+```
+
+## Today's agenda
+
+* **Review: How we forecast elections**
+    * What we've learned so far
+    * How we communicate forecasts
+    
+* **Cocktail party simulation**
+
+* **Ideology**
+    * What is it?
+       -DW-NOMINATE Scores
+    * How do we measure it?
+    * How do we include it in a prediction model?
+    
+* **Reminder: Final Forecast due Monday 11/7**    
+
+# Review: How we forecast elections
+
+## How you've been forecasting elections
+
+Recall the \texttt{R} election analyst's workflow:
+![](data_science_2.png)
+\pause
+\textbf{You have been doing this every week! Be \textcolor{red}{extremely proud} of yourself.}
+
+##  Two major downsides of election forecasting
+
+From ["Let's Be Honest About Election Forecasting," (Victor 2020)](https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/lets-be-honest-about-election-forecasting/A573B2560D0B9CEB408611F05A9446FC): \pause
+
+\textbf{\#1. Unavoidable trade-offs}: \newline \pause
+\footnotesize
+\begin{quote}
+At the end of the day, forecasters who rely on \textbf{variable factors} [like ads or shocks] of the election may overcorrect their models in \textcolor{red}{arbitrary} ways that reduce the value of their forecast; yet those who rely on \textbf{fixed factors} [like fundamentals or lagged vote] may insufficiently account for the odd features of each particular cycle. Damned if you do; damned if you don’t.
+\end{quote}
+\normalsize
+\pause
+\textbf{\#2. More uncertainty than science can handle}: \pause
+\footnotesize
+
+* Forecasts give a false impression of science and certainty
+* This is because forecasters aim for \textbf{prediction} while scientists aim for \textbf{explanation}
+* Sometimes involves non-rigorous or ad hoc choices (ex: simulating surges, picking ensemble weights)
+* In absence of explanation, best we can do is \textbf{validation}
+
+## What we can do about it
+
+Jennifer Victor's advice:
+\footnotesize
+
+* Emphasize the precise parameters that a forecast estimates, and nothing more.
+
+* Favor forecasts that predict vote share, rather than the probability of winning, because people are really bad at cognitively processing probabilities.
+
+* Use data visualizations to emphasize uncertainty in any forecast.
+
+* Whenever possible, provide transparency, clarity, and an honest context that allows readers to evaluate the limits of a forecast.
+
+\pause
+\normalsize
+\textbf{Q:} Skim one forecast from [PS: Political Science & Politics “Forecasting the 2018 US Midterm Elections”](https://drive.google.com/drive/u/0/folders/1zCCwkXszMqVsm3U1T1_s6n6ffyB8Jc5C)
+
+1. Does the author follow Jennifer Victor's advice?
+2. How could it be improved?
+
+## Cocktail Party simulation
+
+You're watching the election at the IOP, Gov Department Currier House election event, or David Shor's next party; your friends, who know you're taking Gov 1347, turn to you and ask for your expert opinion of the election.
+
+\textit{\textbf{"Who do you think will win the election and why?"}} \newline
+
+# Ideology
+
+## What is it?
+In research on political institutions, ideology is defined as...roll call votes on issues related to the economy. What do we make of this definition?
+
+## How do we measure it?
+
+The DW-NOMINATE method calculates Congress members’ relative ideological positions by analyzing how often Congress members vote with or against each other in the roll call records. The DW-NOMINATE method is a scaling method – it puts those with more similar voting behavior closer together, and vice versa.
+
+- (1) This method uses roll call votes (binary 1,0) to estimate groupings on a two dimensional scale
+
+- (2) Self-selected data: bills only make it to the legislative floor if they are going to pass or are important. How does DW-NOMINATE deal with this? The scores become unbiased via the law of large numbers/central limit theorem whereby scores converge with lots of votes..
+
+## How do we measure it? pt.2
+
+Visually, we represent legislators and their scores in two-dimensional Cartesian space. The first dimension score (y-axis) can be interpreted as the position on government intervention in the economy, also referred to as the ‘liberal-conservative’ (left-right) scale. The 2nd dimension (x-axis) can be interpreted as the position on salient issues of the day, such as slavery, civil rights, and LGBT rights. The 1st dimension explains the vast majority of differences in voting behavior.
+
+![](nominate.png)
+
+## How do we include it in a prediction model?
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE}
+# read in ideology data
+HSall_members_copy <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/issues and ideology/HSall_members_copy.csv")
+ideo <- HSall_members_copy
+
+# read in congress/year data
+house_seat_share_by_party_1948_2020 <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/Intro/Section data/house seat share by party 1948-2020.csv")
+congress_yrs <- house_seat_share_by_party_1948_2020
+# mutate congress var - lowercase, keep digits only
+congress_yrs <- congress_yrs %>%
+  dplyr::rename(congress = Congress) 
+
+congress_yrs$congress <- as.numeric(gsub("([0-9]+).*$", "\\1", congress_yrs$congress))
+
+# subset to relevant years - 113-117th congress (2012-2021)
+ideo_house <- ideo %>%
+  filter(congress == 113 | congress == 114 | congress == 115 | congress == 116 | congress == 117 &
+           chamber == 'House') %>%
+  # add in 'year' ~ congress 
+  mutate(year = case_when(congress == 113 ~ 2012,
+                          congress == 114 ~ 2014,
+                          congress == 115 ~ 2016, 
+                          congress == 116 ~ 2018,
+                         congress == 117 ~ 2020))
+# state names
+ideo_house$state <- abbr2state(ideo_house$state_abbrev)
+
+# st_fips
+ideo_house <- ideo_house %>%
+  mutate(st_fips = case_when(state == 'Alabama' ~ '01',
+                             state == 'Alaska' ~ '02',
+                             state == 'Arizona' ~ '04',
+                             state == 'Arkansas' ~ '05',
+                             state =='California' ~ '06',
+                             state =='Colorado' ~ '08',
+                             state =='Connecticut' ~ '09',
+                             state =='Delaware' ~ '10',
+                             state == 'Florida' ~ '12',
+                             state == 'Georgia' ~ '13',
+                             state == 'Hawaii' ~ '15',
+                             state =='Idaho' ~ '16',
+                             state =='Illinois' ~ '17',
+                             state =='Indiana' ~ '18',
+                             state =='Iowa' ~ '19',
+                             state =='Kansas' ~ '20',
+                             state =='Kentucky' ~ '21',
+                             state =='Louisiana' ~ '22',
+                             state =='Maine' ~ '23',
+                             state =='Maryland' ~ '24',
+                             state =='Massachusetts' ~ '25',
+                             state =='Michigan' ~ '26',
+                             state =='Minnesota' ~ '27',
+                             state =='Mississippi' ~ '28',
+                             state =='Missouri' ~ '29',
+                             state =='Montana' ~ '30',
+                             state =='Nebraska' ~ '31',
+                             state =='Nevada' ~ '32',
+                             state =='New Hampshire' ~ '33',
+                             state =='New Jersey' ~ '34',
+                             state =='New Mexico' ~ '35',
+                             state =='New York' ~ '36',
+                             state =='North Carolina' ~ '37',
+                             state =='North Dakota' ~ '38',
+                             state =='Ohio' ~ '39',
+                             state =='Oklahoma' ~ '40',
+                             state =='Oregon' ~ '41',
+                             state =='Pennsylvania' ~ '42',
+                             state =='Rhode Island' ~ '44',
+                             state =='South Carolina' ~ '45',
+                             state =='South Dakota' ~ '46',
+                             state =='Tennessee' ~ '47',
+                             state =='Texas' ~ '48',
+                             state =='Utah' ~ '49',
+                             state =='Vermont' ~ '50',
+                             state =='Virginia' ~ '51',
+                             state =='Washington' ~ '53',
+                             state =='West Virginia' ~ '54',
+                             state =='Wisconsin' ~ '55',
+                             state =='Wyoming' ~ '56')) 
+
+# add in cd_fips ~ 'district_code'
+nums <- c(1, 2, 3, 4, 5, 6, 7, 8, 9)
+ideo_house$cd_fips <- ifelse(ideo_house$district_code %in% nums, 
+                           paste0("0",ideo_house$district_code), 
+                           ideo_house$district_code)
+# st_cd_fips
+ideo_house$st_cd_fips <- paste(ideo_house$st_fips,
+                             ideo_house$cd_fips,
+                             sep = "")
+
+# filter out NAs
+ideo_house <- ideo_house %>%
+  filter(!is.na(state))
+
+# merge with voteshare data at district-level
+# district-level votes
+dist_pv_df <- read_csv("~/Dropbox/ElectionAnalytics_Midterms/Lab sessions/fundamentals II_ incumbency/incumb_dist_1948-2020 (3).csv")
+
+# select relevant years from voting data
+dist_pv_df <- dist_pv_df %>%
+  filter(year == 2012 | year == 2014 | year == 2016 | year == 2018 | year == 2020)
+
+# merge
+dist_pv_ideo <- dist_pv_df %>%
+  inner_join(ideo_house, by = c('st_cd_fips', 'year'))
+
+# select relevant vars
+dist_pv_ideo <- dist_pv_ideo %>%
+  select("year","state.x","st_fips.x", "cd_fips", "st_cd_fips","winner_party","RepVotes","RepCandidate","RepStatus","DemVotes","DemCandidate","DemStatus","RepVotesMajorPercent"        ,"DemVotesMajorPercent","winner_candidate","winner_candidate_inc","president_party","congress","party_code","occupancy","last_means","bioname","bioguide_id","born","died","nominate_dim1","nominate_dim2","nominate_log_likelihood","nominate_geo_mean_probability","nominate_number_of_votes"    ,"nominate_number_of_errors","conditional","nokken_poole_dim1","nokken_poole_dim2") %>%
+  # winner name
+  dplyr::rename(winner_name = bioname)
+
+# models
+# mutate voteshare
+dist_pv_ideo <- dist_pv_ideo %>%
+  mutate(winner_voteshare = case_when(winner_candidate == 'RepCandidate' ~ RepVotesMajorPercent,
+                                      winner_candidate == 'DemCandidate' ~ DemVotesMajorPercent))
+
+# mutate nominate - 0-1
+dist_pv_ideo <- dist_pv_ideo %>%
+  mutate(new_nom1 = abs(nominate_dim1),
+         new_nom2 = abs(nominate_dim2))
+
+# write csv
+write.csv(dist_pv_ideo, "/Users/kiara/Dropbox/ElectionAnalytics_Midterms/Lab sessions/issues and ideology/ideo_pv.csv")
+  
+# model
+fit_ideo <- lm(winner_voteshare ~ new_nom1 + winner_candidate_inc, data = dist_pv_ideo)
+
+fit_ideo2 <- lm(winner_voteshare ~ new_nom2 + winner_candidate_inc, data = dist_pv_ideo)
+
+```
+
+```{r, echo=TRUE, eval=TRUE, warning=FALSE,message=FALSE, results='asis'}
+stargazer(fit_ideo, fit_ideo2, header=FALSE, type='latex', no.space = TRUE,
+          covariate.labels = c("economic ideology", "social issue ideology", "incumbent"),
+          column.sep.width = "3pt", font.size = "scriptsize", single.row = TRUE,
+          keep = c(1:7, 62:66), omit.table.layout = "sn",
+          title = "Ideological Extremism and Voteshare")
+```
+
+
+## Does ideological extremism affect voteshare?
+\tiny
+Canes-Wrone et al. (2002): "We hypothesize that controlling for district ideology, Democrats lose electoral support by vot- ing more liberally and Republicans by voting more conservatively. Thus for two Democratic (Republican) incumbents from districts with identical voter preferences, the Democrat (Republican) with the more liberal (conservative) voting record should have a lower electoral vote share, holding all else equal. We refer to this prediction as the \textit{Roll-Call Ideological Extremity Hypothesis.} ...
+
+Applying \textbf{Downsian (1957)} logic to this stylized fact of ideological divergence between the Republican and the Democratic candidates in a district, \textbf{ideological moderation should increase an incumbent’s vote share}... Thus if voters’ assessment of the incumbent’s ideology is not independent of her legislative voting, \textbf{her electoral margin is higher the less she votes with the ideological extreme of her party}"
+
+## What is the Downsian logic?
+
+Downs' (1957) Median Voter Theorem: 
+
+(1) Parties/politicians will converge towards the median of the preference distribution in order capture the greatest number of voters
+(2) Parties/politicians will converge towards the median voters' preferences
+
+![](spectrum.jpg)
+
+Downs Ch.8: "If the ideological positions of voters are displayed in the form of a graph and if that graph shows a single peak, then a median voter can be identified and in a representative democracy, the choice of candidates and the choice of policies will gravitate toward the positions of the median voter"
+
+## Does the Downsian logic apply to modern US politics?
+
+Downs Ch.8: "Conversely, if the graph of ideological distribution is double-peaked, indicating that most voters are either extremely liberal or extremely conservative, the tendency toward political consensus or political equilibrium is difficult to attain because legislators representing each mode are penalized by voters for attempting to achieve consensus with the other side by supporting policies representative of a middle position"
+
+## What does a double-peaked ideological distribution look like?
+Today:
+
+![](2020 pres.png)
+
+## Hypothetical evolution of voter preferences
+Generally:
+
+![](double peak.png)
+
+## How does candidate ideological extremism affect voteshare?
+\tiny
+Canes-Wrone et al. (2002): "The literature identifies several mechanisms by which roll-call voting should affect constituents’ assessments of an incumbent’s ideology absent their complete knowledge of his or her record. As Erikson (1971) discusses, one such mechanism is a diffusion model in which elites pay attention to the legislative voting of members, and voters take cues from elites that share their policy positions. A second mechanism, suggested by the analysis of Bailey (2001), is that challengers are likely to inform constituents about the policy positions of a member when he votes out of step with district preferences."
+
+$\rightarrow$ this brings up an important point when considering how ideology brings together several of the aspects we've covered in this class. 
+
+(1) How do campaigns, elites and voters influence one another? 
+
+(2) How do we connect the way that elites behave in Congress with the mass voter behavior we've been trying to understand? 
+
