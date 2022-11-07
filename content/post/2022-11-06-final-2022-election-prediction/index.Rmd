@@ -5,9 +5,130 @@ date: '2022-11-06'
 slug: []
 categories: []
 tags: []
-summary: Placeholder
+summary: In this post, I reveal and break down my final national House of Representatives prediction for the 2022 midterms. What percentage of the popular vote and how many seats will Democrats win? Click to find out!
 ---
 
 *This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
 
 # Introduction
+
+**It's finally here.**
+
+Election Day has finally arrived, and I know my lovely blog audience has been eagerly awaiting my final prediction for the "most important election in our lifetime" (or as [every](https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html) [election](https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html) ever seems to be). This post will provide a full breakdown of my final national model - which predicts both Democrats' national two-party vote share and the number of Democratic House seats - and an interpretation of the results.
+
+# Vote Share Model
+
+Compared to last week, I made several changes to the variables I incorporate into my model.
+
+![](images/Screenshot%202022-11-07%20at%209.25.59%20AM.png)
+
+![](images/Screenshot%202022-11-07%20at%209.29.44%20AM.png)
+
+Above are the formulas for the vote share and seat share versions of the model. As you can see, both use the same independent variables, differing only in the dependent variable. Below I break down each of the four independent variables I've chosen to use for my model:
+
+**1. Unemployment rate:** Specifically, I use the percent change in the unemployment rate between the third and fourth quarter of the election year. I use the last few months of unemployment data since it is what people will be experiencing at the time of the election, and I now am using percent change to better capture major changes to unemployment close to an election that would be more noticeable to voters.
+
+**2. Real disposable income:** I decided to include another economic variable, seeing as how often the economy is played up as one of the most important issues in this election and almost every other election. Similarly to the unemployment rate variable, I use the percent change in RDI between the third and fourth quarter of the election year.
+
+**3. Average democratic generic ballot support:** Based on past elections, the generic ballot continues to be a powerful tool for helping us predict the final results of the election. I incorporate the last 100 days of generic ballot polls before the election since the closer the election is, the closer the polls seem to converge on the final result.
+
+**4. Incumbent party of the president:** I decided to just focus on this incumbency variable, based on the conventional wisdom that midterm elections are bad for the incumbent president's party specifically, even if the opposing party is in control of the House or Senate. It measures whether the incumbent president at the time of the election is a Democrat (1) or a Republican (0).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+## Load packages
+library(tidyverse)
+library(readr)
+library(gtsummary)
+library(lubridate)
+
+## Load and clean data
+# House voteshare and seatshare
+vote_seat <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/house_popvote_seats.csv") %>%
+  # Remove unnecessary columns
+  select(-...1, -AreaAll, -president_party, -H_incumbent_party_winner,
+         -H_incumbent_party_majorvote_pct, -H_incumbent_party)
+
+# National unemployment by quarter
+unemployment <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/unemployment_national_quarterly_final.csv") %>%
+  # Remove unnecessary columns
+  select(-...1, -...2) %>% 
+  # Calculate percent change in unemployment between quarters
+  mutate(ue_pct_chg = (UNRATE/lag(UNRATE) - 1) * 100) %>% 
+  # Filter for percent change from quarter 3 to 4
+  filter(quarter_yr == 4)
+
+# National RDI by quarter
+rdi <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 2/RDI_quarterly.csv") %>% 
+   # Remove unnecessary columns
+  select(-...1) %>% 
+  filter(quarter_yr == 4) %>% 
+  rename(rdi_pct_chg = DSPIC_change_pct)
+
+# Generic ballot polls
+polls <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/GenericPolls1942_2020.csv") %>%
+  # Focus on polls no earlier than 100 days before election and remove post-election polls
+  filter(days_until_election <= 100 & days_until_election > 0) %>%
+  # Average poll support by party for each election year
+  group_by(year) %>% 
+  summarise(avg_D_support = mean(dem))
+
+# Incumbency
+incumb <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 7/party_power.csv") %>% 
+  # Incumbent indicator variable
+  mutate(pres_incumb = if_else(pres_party_in_power_at_election == "D", 1, 0)) %>% 
+  select(Year, pres_incumb) %>% 
+  rename(year = Year)
+# Incumbency training data
+incumb_2020 <- incumb %>% 
+  filter(year != 2022)
+
+# 2022 generic ballot polls
+polls_2022 <- read_csv("~/Documents/R-Projects/election-blog/Labs/Lab 3/538_generic_poll_2022_final.csv")
+# Change class of start date column
+polls_2022$start_date <- mdy(polls_2022$start_date)
+# Filter for Dem polls 100 days before election and calculate average support
+polls_2022 <- polls_2022 %>% 
+  filter(start_date >= "2022-07-31") %>% 
+  summarise(avg_D_support = mean(dem))
+```
+
+```{r merge}
+## Merge all datasets
+model_dat <- left_join(vote_seat, unemployment, by = "year") %>% 
+  left_join(rdi, by = "year") %>% 
+  left_join(polls, by = "year") %>% 
+  left_join(incumb_2020, by = "year") %>%
+  # Leave out 2020 data
+  filter(year != 2020)
+```
+
+```{r vote share model}
+## Dem two-party vote share model
+lm_voteshare <- lm(D_majorvote_pct ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
+   model_dat)
+# Regression table
+tbl_regression(lm_voteshare, intercept = TRUE) %>% 
+  bold_p() %>% bold_labels() %>% 
+  add_glance_source_note(include = adj.r.squared)
+```
+
+```{r seat share model}
+## Dem seat share model
+lm_seatshare <- lm(D_seats ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
+   model_dat)
+# Regression table
+tbl_regression(lm_seatshare, intercept = TRUE) %>% 
+  bold_p() %>% bold_labels() %>% 
+  add_glance_source_note(include = adj.r.squared)
+```
+
+```{r 2022 vote share prediction}
+## 2022 Dem vote share prediction
+predict(lm_voteshare, data.frame(ue_pct_chg = 5.71428571, rdi_pct_chg = 0.23850221, avg_D_support = polls_2022$avg_D_support, pres_incumb = 1), interval = "prediction")
+```
+
+```{r 2022 seat share prediction}
+## 2022 Dem seat share prediction
+predict(lm_seatshare, data.frame(ue_pct_chg = 5.71428571, rdi_pct_chg = 0.23850221, avg_D_support = polls_2022$avg_D_support, pres_incumb = 1), interval = "prediction")
+```
