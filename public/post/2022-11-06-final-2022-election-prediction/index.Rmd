@@ -18,7 +18,7 @@ Election Day has finally arrived, and I know my lovely blog audience has been ea
 
 # Formula and Variables
 
-Since two weeks ago, I made several changes to the variables I incorporate into my model.
+Since two weeks ago, I made several changes to the variables I incorporate into my model. Notably, I have decided to leave out data from the 2020 election entirely due to the highly unusual circumstances of the election taking place during the COVID-19 pandemic.
 
 ![](images/Screenshot%202022-11-07%20at%209.25.59%20AM.png)
 
@@ -117,7 +117,7 @@ tbl_regression(lm_voteshare, intercept = TRUE) %>%
   add_glance_source_note(include = adj.r.squared)
 ```
 
-Above is a table showing the output of the regression of vote share on the independent variables. Interestingly, the two economic variables - percent change in unemployment rate and RDI - were not statistically significant. However, the other two variables in my model were both statistically significant, with p-values well under 0.05. The coefficient for "avg_D\_support" is 0.47, which means that for every 1 percent increase in average generic ballot poll support for Democrats, Democrats gain about 0.47 percent in the popular vote. This relationship shows that if Democrats have the poll numbers, they will likely translate some of that into votes on Election Day. On the other hand, the coefficient for "pres_incumb" is -2.7, which means that if the incumbent president is a Democrat, Democrats are penalized about 2.7 percent in the popular vote. This result falls in line with the conventional wisdom of parties performing more poorly when their party has the presidency. The adjusted R-squared for this regression is 0.689, which is a nice increase from two weeks ago, when the adjusted R-squared for the vote share regression was 0.468.
+Above is a table showing the output of the regression of vote share on the independent variables. Interestingly, the two economic variables - percent change in unemployment rate and RDI - were not statistically significant. However, the other two variables in my model were both statistically significant, with p-values well under 0.05. The coefficient for "avg_D\_support" is 0.47, which means that for every 1 percent increase in average generic ballot poll support for Democrats, Democrats gain about 0.47 percent in the popular vote. This relationship shows that if Democrats have the poll numbers, they will likely translate some of that into votes on Election Day. On the other hand, the coefficient for "pres_incumb" is -2.7, which means that if the incumbent president is a Democrat, Democrats are penalized about 2.7 percent in the popular vote. This result falls in line with the conventional wisdom of parties performing more poorly when their party has the presidency. The adjusted R-squared for this regression is 0.689, which is a nice increase from two weeks ago, when the adjusted R-squared for the vote share regression was 0.468. Thus, this model has arguably good in-sample fit, especially when compared to my other models during the course of this semester.
 
 ### Seat Share
 
@@ -131,9 +131,34 @@ tbl_regression(lm_seatshare, intercept = TRUE) %>%
   add_glance_source_note(include = adj.r.squared)
 ```
 
-Above is a table showing the output of the regression of seat share on the independent variables. As was the case in the vote share regression, the economic variables are again not statistically significant. I would think that the change in unemployment and RDI would factor into voters' decision making when choosing which party to vote for, especially if these changes are large, but this result could just be due to how I created these variables. The non-economic variables were again statistically significant with p-values well below 0.05. The coefficient for "avg_D\_support" is 5.0, which means that every 1 percent increase in average generic ballot support translates to about a gain of 5 House seats for the Democrats. The coefficient for "pres_incumb" is -21, which means that if a Democrat currently holds the White House, Democrats are expected to lose an additional 21 House seats. These results are not too different from the vote share regression and fall in line with my expectations and the conventional wisdom. The adjusted R-squared in this case is 0.656, not too different than the vote share regression and definitely higher than the adjusted-R squared from the model from two weeks ago (0.549).
+Above is a table showing the output of the regression of seat share on the independent variables. As was the case in the vote share regression, the economic variables are again not statistically significant. I would think that the change in unemployment and RDI would factor into voters' decision making when choosing which party to vote for, especially if these changes are large, but this result could just be due to how I created these variables. The non-economic variables were again statistically significant with p-values well below 0.05. The coefficient for "avg_D\_support" is 5.0, which means that every 1 percent increase in average generic ballot support translates to about a gain of 5 House seats for the Democrats. The coefficient for "pres_incumb" is -21, which means that if a Democrat currently holds the White House, Democrats are expected to lose an additional 21 House seats. These results are not too different from the vote share regression and fall in line with my expectations and the conventional wisdom. The adjusted R-squared in this case is 0.656, not too different than the vote share regression and definitely higher than the adjusted-R squared from the model from two weeks ago (0.549). Just like my vote share model, this model also arguably has good in-sample fit.
 
-# Model Validation
+# Out-Of-Sample Testing
+
+```{r out of sample votes}
+## Vote share out of sample test
+# Remove 2018 from sample
+outsamp_vote1 <- lm(D_majorvote_pct ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
+   model_dat[model_dat$year != 2018,])
+outsamp_pred1 <- predict(outsamp_vote1, model_dat[model_dat$year == 2018,])
+outsamp_true1 <- model_dat$D_majorvote_pct[model_dat$year == 2018]
+
+# Difference
+outsamp_pred1 - outsamp_true1
+```
+
+```{r out of sample seats}
+## Seat share out of sample test
+# Remove 2018 from sample
+outsamp_vote2 <- lm(D_seats ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
+   model_dat[model_dat$year != 2018,])
+outsamp_pred2 <- predict(outsamp_vote2, model_dat[model_dat$year == 2018,])
+outsamp_true2 <- model_dat$D_seats[model_dat$year == 2018]
+
+# Difference
+outsamp_pred2 - outsamp_true2
+```
+
 
 # Final Prediction
 
