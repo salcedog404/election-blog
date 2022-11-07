@@ -70,9 +70,9 @@
 <p><strong>It’s finally here.</strong></p>
 <p>Election Day has finally arrived, and I know my lovely blog audience has been eagerly awaiting my final prediction for the “most important election in our lifetime” (or as <a href="https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html">every</a> <a href="https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html">election</a> ever seems to be). This post will provide a full breakdown of my final national model - which predicts both Democrats’ national two-party vote share and the number of Democratic House seats - and an interpretation of the results.</p>
 </div>
-<div id="vote-share-model" class="section level1">
-<h1>Vote Share Model</h1>
-<p>Compared to last week, I made several changes to the variables I incorporate into my model.</p>
+<div id="formula-and-variables" class="section level1">
+<h1>Formula and Variables</h1>
+<p>Since two weeks ago, I made several changes to the variables I incorporate into my model.</p>
 <p><img src="images/Screenshot%202022-11-07%20at%209.25.59%20AM.png" /></p>
 <p><img src="images/Screenshot%202022-11-07%20at%209.29.44%20AM.png" /></p>
 <p>Above are the formulas for the vote share and seat share versions of the model. As you can see, both use the same independent variables, differing only in the dependent variable. Below I break down each of the four independent variables I’ve chosen to use for my model:</p>
@@ -80,12 +80,17 @@
 <p><strong>2. Real disposable income:</strong> I decided to include another economic variable, seeing as how often the economy is played up as one of the most important issues in this election and almost every other election. Similarly to the unemployment rate variable, I use the percent change in RDI between the third and fourth quarter of the election year.</p>
 <p><strong>3. Average democratic generic ballot support:</strong> Based on past elections, the generic ballot continues to be a powerful tool for helping us predict the final results of the election. I incorporate the last 100 days of generic ballot polls before the election since the closer the election is, the closer the polls seem to converge on the final result.</p>
 <p><strong>4. Incumbent party of the president:</strong> I decided to just focus on this incumbency variable, based on the conventional wisdom that midterm elections are bad for the incumbent president’s party specifically, even if the opposing party is in control of the House or Senate. It measures whether the incumbent president at the time of the election is a Democrat (1) or a Republican (0).</p>
-<div id="kqzyykyhjo" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+</div>
+<div id="regression-tables" class="section level1">
+<h1>Regression Tables</h1>
+<div id="vote-share" class="section level3">
+<h3>Vote Share</h3>
+<div id="vhyymgvcaq" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#kqzyykyhjo .gt_table {
+#vhyymgvcaq .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -110,7 +115,7 @@
   border-left-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_heading {
+#vhyymgvcaq .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -122,7 +127,7 @@
   border-right-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_title {
+#vhyymgvcaq .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -134,7 +139,7 @@
   border-bottom-width: 0;
 }
 
-#kqzyykyhjo .gt_subtitle {
+#vhyymgvcaq .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -146,13 +151,13 @@
   border-top-width: 0;
 }
 
-#kqzyykyhjo .gt_bottom_border {
+#vhyymgvcaq .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_col_headings {
+#vhyymgvcaq .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -167,7 +172,7 @@
   border-right-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_col_heading {
+#vhyymgvcaq .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -187,7 +192,7 @@
   overflow-x: hidden;
 }
 
-#kqzyykyhjo .gt_column_spanner_outer {
+#vhyymgvcaq .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -199,15 +204,15 @@
   padding-right: 4px;
 }
 
-#kqzyykyhjo .gt_column_spanner_outer:first-child {
+#vhyymgvcaq .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#kqzyykyhjo .gt_column_spanner_outer:last-child {
+#vhyymgvcaq .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#kqzyykyhjo .gt_column_spanner {
+#vhyymgvcaq .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -219,7 +224,7 @@
   width: 100%;
 }
 
-#kqzyykyhjo .gt_group_heading {
+#vhyymgvcaq .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -244,7 +249,7 @@
   vertical-align: middle;
 }
 
-#kqzyykyhjo .gt_empty_group_heading {
+#vhyymgvcaq .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -259,15 +264,15 @@
   vertical-align: middle;
 }
 
-#kqzyykyhjo .gt_from_md > :first-child {
+#vhyymgvcaq .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#kqzyykyhjo .gt_from_md > :last-child {
+#vhyymgvcaq .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#kqzyykyhjo .gt_row {
+#vhyymgvcaq .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -286,7 +291,7 @@
   overflow-x: hidden;
 }
 
-#kqzyykyhjo .gt_stub {
+#vhyymgvcaq .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -299,7 +304,7 @@
   padding-right: 5px;
 }
 
-#kqzyykyhjo .gt_stub_row_group {
+#vhyymgvcaq .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -313,11 +318,11 @@
   vertical-align: top;
 }
 
-#kqzyykyhjo .gt_row_group_first td {
+#vhyymgvcaq .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#kqzyykyhjo .gt_summary_row {
+#vhyymgvcaq .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -327,16 +332,16 @@
   padding-right: 5px;
 }
 
-#kqzyykyhjo .gt_first_summary_row {
+#vhyymgvcaq .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_first_summary_row.thick {
+#vhyymgvcaq .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#kqzyykyhjo .gt_last_summary_row {
+#vhyymgvcaq .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -346,7 +351,7 @@
   border-bottom-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_grand_summary_row {
+#vhyymgvcaq .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -356,7 +361,7 @@
   padding-right: 5px;
 }
 
-#kqzyykyhjo .gt_first_grand_summary_row {
+#vhyymgvcaq .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -366,11 +371,11 @@
   border-top-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_striped {
+#vhyymgvcaq .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#kqzyykyhjo .gt_table_body {
+#vhyymgvcaq .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -379,7 +384,7 @@
   border-bottom-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_footnotes {
+#vhyymgvcaq .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -393,7 +398,7 @@
   border-right-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_footnote {
+#vhyymgvcaq .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -402,7 +407,7 @@
   padding-right: 5px;
 }
 
-#kqzyykyhjo .gt_sourcenotes {
+#vhyymgvcaq .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -416,7 +421,7 @@
   border-right-color: #D3D3D3;
 }
 
-#kqzyykyhjo .gt_sourcenote {
+#vhyymgvcaq .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -424,64 +429,64 @@
   padding-right: 5px;
 }
 
-#kqzyykyhjo .gt_left {
+#vhyymgvcaq .gt_left {
   text-align: left;
 }
 
-#kqzyykyhjo .gt_center {
+#vhyymgvcaq .gt_center {
   text-align: center;
 }
 
-#kqzyykyhjo .gt_right {
+#vhyymgvcaq .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#kqzyykyhjo .gt_font_normal {
+#vhyymgvcaq .gt_font_normal {
   font-weight: normal;
 }
 
-#kqzyykyhjo .gt_font_bold {
+#vhyymgvcaq .gt_font_bold {
   font-weight: bold;
 }
 
-#kqzyykyhjo .gt_font_italic {
+#vhyymgvcaq .gt_font_italic {
   font-style: italic;
 }
 
-#kqzyykyhjo .gt_super {
+#vhyymgvcaq .gt_super {
   font-size: 65%;
 }
 
-#kqzyykyhjo .gt_footnote_marks {
+#vhyymgvcaq .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#kqzyykyhjo .gt_asterisk {
+#vhyymgvcaq .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#kqzyykyhjo .gt_indent_1 {
+#vhyymgvcaq .gt_indent_1 {
   text-indent: 5px;
 }
 
-#kqzyykyhjo .gt_indent_2 {
+#vhyymgvcaq .gt_indent_2 {
   text-indent: 10px;
 }
 
-#kqzyykyhjo .gt_indent_3 {
+#vhyymgvcaq .gt_indent_3 {
   text-indent: 15px;
 }
 
-#kqzyykyhjo .gt_indent_4 {
+#vhyymgvcaq .gt_indent_4 {
   text-indent: 20px;
 }
 
-#kqzyykyhjo .gt_indent_5 {
+#vhyymgvcaq .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -529,12 +534,16 @@
   </tfoot>
 </table>
 </div>
-<div id="nfqxjaffii" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<p>Above is a table showing the output of the regression of vote share on the independent variables. Interestingly, the two economic variables - percent change in unemployment rate and RDI - were not statistically significant. However, the other two variables in my model were both statistically significant, with p-values well under 0.05. The coefficient for “avg_D_support” is 0.47, which means that for every 1 percent increase in average generic ballot poll support for Democrats, Democrats gain about 0.47 percent in the popular vote. This relationship shows that if Democrats have the poll numbers, they will likely translate some of that into votes on Election Day. On the other hand, the coefficient for “pres_incumb” is -2.7, which means that if the incumbent president is a Democrat, Democrats are penalized about 2.7 percent in the popular vote. This result falls in line with the conventional wisdom of parties performing more poorly when their party has the presidency. The adjusted R-squared for this regression is 0.689, which is a nice increase from two weeks ago, when the adjusted R-squared for the vote share regression was 0.468.</p>
+</div>
+<div id="seat-share" class="section level3">
+<h3>Seat Share</h3>
+<div id="pbtcyhhszh" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#nfqxjaffii .gt_table {
+#pbtcyhhszh .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -559,7 +568,7 @@
   border-left-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_heading {
+#pbtcyhhszh .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -571,7 +580,7 @@
   border-right-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_title {
+#pbtcyhhszh .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -583,7 +592,7 @@
   border-bottom-width: 0;
 }
 
-#nfqxjaffii .gt_subtitle {
+#pbtcyhhszh .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -595,13 +604,13 @@
   border-top-width: 0;
 }
 
-#nfqxjaffii .gt_bottom_border {
+#pbtcyhhszh .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_col_headings {
+#pbtcyhhszh .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -616,7 +625,7 @@
   border-right-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_col_heading {
+#pbtcyhhszh .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -636,7 +645,7 @@
   overflow-x: hidden;
 }
 
-#nfqxjaffii .gt_column_spanner_outer {
+#pbtcyhhszh .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -648,15 +657,15 @@
   padding-right: 4px;
 }
 
-#nfqxjaffii .gt_column_spanner_outer:first-child {
+#pbtcyhhszh .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#nfqxjaffii .gt_column_spanner_outer:last-child {
+#pbtcyhhszh .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#nfqxjaffii .gt_column_spanner {
+#pbtcyhhszh .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -668,7 +677,7 @@
   width: 100%;
 }
 
-#nfqxjaffii .gt_group_heading {
+#pbtcyhhszh .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -693,7 +702,7 @@
   vertical-align: middle;
 }
 
-#nfqxjaffii .gt_empty_group_heading {
+#pbtcyhhszh .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -708,15 +717,15 @@
   vertical-align: middle;
 }
 
-#nfqxjaffii .gt_from_md > :first-child {
+#pbtcyhhszh .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#nfqxjaffii .gt_from_md > :last-child {
+#pbtcyhhszh .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#nfqxjaffii .gt_row {
+#pbtcyhhszh .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -735,7 +744,7 @@
   overflow-x: hidden;
 }
 
-#nfqxjaffii .gt_stub {
+#pbtcyhhszh .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -748,7 +757,7 @@
   padding-right: 5px;
 }
 
-#nfqxjaffii .gt_stub_row_group {
+#pbtcyhhszh .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -762,11 +771,11 @@
   vertical-align: top;
 }
 
-#nfqxjaffii .gt_row_group_first td {
+#pbtcyhhszh .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#nfqxjaffii .gt_summary_row {
+#pbtcyhhszh .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -776,16 +785,16 @@
   padding-right: 5px;
 }
 
-#nfqxjaffii .gt_first_summary_row {
+#pbtcyhhszh .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_first_summary_row.thick {
+#pbtcyhhszh .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#nfqxjaffii .gt_last_summary_row {
+#pbtcyhhszh .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -795,7 +804,7 @@
   border-bottom-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_grand_summary_row {
+#pbtcyhhszh .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -805,7 +814,7 @@
   padding-right: 5px;
 }
 
-#nfqxjaffii .gt_first_grand_summary_row {
+#pbtcyhhszh .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -815,11 +824,11 @@
   border-top-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_striped {
+#pbtcyhhszh .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#nfqxjaffii .gt_table_body {
+#pbtcyhhszh .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -828,7 +837,7 @@
   border-bottom-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_footnotes {
+#pbtcyhhszh .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -842,7 +851,7 @@
   border-right-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_footnote {
+#pbtcyhhszh .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -851,7 +860,7 @@
   padding-right: 5px;
 }
 
-#nfqxjaffii .gt_sourcenotes {
+#pbtcyhhszh .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -865,7 +874,7 @@
   border-right-color: #D3D3D3;
 }
 
-#nfqxjaffii .gt_sourcenote {
+#pbtcyhhszh .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -873,64 +882,64 @@
   padding-right: 5px;
 }
 
-#nfqxjaffii .gt_left {
+#pbtcyhhszh .gt_left {
   text-align: left;
 }
 
-#nfqxjaffii .gt_center {
+#pbtcyhhszh .gt_center {
   text-align: center;
 }
 
-#nfqxjaffii .gt_right {
+#pbtcyhhszh .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#nfqxjaffii .gt_font_normal {
+#pbtcyhhszh .gt_font_normal {
   font-weight: normal;
 }
 
-#nfqxjaffii .gt_font_bold {
+#pbtcyhhszh .gt_font_bold {
   font-weight: bold;
 }
 
-#nfqxjaffii .gt_font_italic {
+#pbtcyhhszh .gt_font_italic {
   font-style: italic;
 }
 
-#nfqxjaffii .gt_super {
+#pbtcyhhszh .gt_super {
   font-size: 65%;
 }
 
-#nfqxjaffii .gt_footnote_marks {
+#pbtcyhhszh .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#nfqxjaffii .gt_asterisk {
+#pbtcyhhszh .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#nfqxjaffii .gt_indent_1 {
+#pbtcyhhszh .gt_indent_1 {
   text-indent: 5px;
 }
 
-#nfqxjaffii .gt_indent_2 {
+#pbtcyhhszh .gt_indent_2 {
   text-indent: 10px;
 }
 
-#nfqxjaffii .gt_indent_3 {
+#pbtcyhhszh .gt_indent_3 {
   text-indent: 15px;
 }
 
-#nfqxjaffii .gt_indent_4 {
+#pbtcyhhszh .gt_indent_4 {
   text-indent: 20px;
 }
 
-#nfqxjaffii .gt_indent_5 {
+#pbtcyhhszh .gt_indent_5 {
   text-indent: 25px;
 }
 </style>
@@ -978,6 +987,14 @@
   </tfoot>
 </table>
 </div>
+<p>Above is a table showing the output of the regression of seat share on the independent variables. As was the case in the vote share regression, the economic variables are again not statistically significant. I would think that the change in unemployment and RDI would factor into voters’ decision making when choosing which party to vote for, especially if these changes are large, but this result could just be due to how I created these variables. The non-economic variables were again statistically significant with p-values well below 0.05. The coefficient for “avg_D_support” is 5.0, which means that every 1 percent increase in average generic ballot support translates to about a gain of 5 House seats for the Democrats. The coefficient for “pres_incumb” is -21, which means that if a Democrat currently holds the White House, Democrats are expected to lose an additional 21 House seats. These results are not too different from the vote share regression and fall in line with my expectations and the conventional wisdom. The adjusted R-squared in this case is 0.656, not too different than the vote share regression and definitely higher than the adjusted-R squared from the model from two weeks ago (0.549).</p>
+</div>
+</div>
+<div id="model-validation" class="section level1">
+<h1>Model Validation</h1>
+</div>
+<div id="final-prediction" class="section level1">
+<h1>Final Prediction</h1>
 <pre><code>##        fit      lwr      upr
 ## 1 49.70226 45.48201 53.92251</code></pre>
 <pre><code>##        fit      lwr     upr
@@ -999,7 +1016,7 @@
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-11-07 09:50:51.613844 -0500 EST m=&#43;0.090862709">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-11-07 10:56:16.414613 -0500 EST m=&#43;0.083409084">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 

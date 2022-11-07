@@ -16,9 +16,9 @@ summary: In this post, I reveal and break down my final national House of Repres
 
 Election Day has finally arrived, and I know my lovely blog audience has been eagerly awaiting my final prediction for the "most important election in our lifetime" (or as [every](https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html) [election](https://slate.com/news-and-politics/2020/11/most-important-election-of-our-lifetimes-history.html) ever seems to be). This post will provide a full breakdown of my final national model - which predicts both Democrats' national two-party vote share and the number of Democratic House seats - and an interpretation of the results.
 
-# Vote Share Model
+# Formula and Variables
 
-Compared to last week, I made several changes to the variables I incorporate into my model.
+Since two weeks ago, I made several changes to the variables I incorporate into my model.
 
 ![](images/Screenshot%202022-11-07%20at%209.25.59%20AM.png)
 
@@ -33,6 +33,8 @@ Above are the formulas for the vote share and seat share versions of the model. 
 **3. Average democratic generic ballot support:** Based on past elections, the generic ballot continues to be a powerful tool for helping us predict the final results of the election. I incorporate the last 100 days of generic ballot polls before the election since the closer the election is, the closer the polls seem to converge on the final result.
 
 **4. Incumbent party of the president:** I decided to just focus on this incumbency variable, based on the conventional wisdom that midterm elections are bad for the incumbent president's party specifically, even if the opposing party is in control of the House or Senate. It measures whether the incumbent president at the time of the election is a Democrat (1) or a Republican (0).
+
+# Regression Tables
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -103,6 +105,8 @@ model_dat <- left_join(vote_seat, unemployment, by = "year") %>%
   filter(year != 2020)
 ```
 
+### Vote Share
+
 ```{r vote share model}
 ## Dem two-party vote share model
 lm_voteshare <- lm(D_majorvote_pct ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
@@ -113,6 +117,10 @@ tbl_regression(lm_voteshare, intercept = TRUE) %>%
   add_glance_source_note(include = adj.r.squared)
 ```
 
+Above is a table showing the output of the regression of vote share on the independent variables. Interestingly, the two economic variables - percent change in unemployment rate and RDI - were not statistically significant. However, the other two variables in my model were both statistically significant, with p-values well under 0.05. The coefficient for "avg_D\_support" is 0.47, which means that for every 1 percent increase in average generic ballot poll support for Democrats, Democrats gain about 0.47 percent in the popular vote. This relationship shows that if Democrats have the poll numbers, they will likely translate some of that into votes on Election Day. On the other hand, the coefficient for "pres_incumb" is -2.7, which means that if the incumbent president is a Democrat, Democrats are penalized about 2.7 percent in the popular vote. This result falls in line with the conventional wisdom of parties performing more poorly when their party has the presidency. The adjusted R-squared for this regression is 0.689, which is a nice increase from two weeks ago, when the adjusted R-squared for the vote share regression was 0.468. Thus, this model has arguably good in-sample fit, especially when compared to my other models during the course of this semester.
+
+### Seat Share
+
 ```{r seat share model}
 ## Dem seat share model
 lm_seatshare <- lm(D_seats ~ ue_pct_chg + rdi_pct_chg + avg_D_support + pres_incumb,
@@ -122,6 +130,12 @@ tbl_regression(lm_seatshare, intercept = TRUE) %>%
   bold_p() %>% bold_labels() %>% 
   add_glance_source_note(include = adj.r.squared)
 ```
+
+Above is a table showing the output of the regression of seat share on the independent variables. As was the case in the vote share regression, the economic variables are again not statistically significant. I would think that the change in unemployment and RDI would factor into voters' decision making when choosing which party to vote for, especially if these changes are large, but this result could just be due to how I created these variables. The non-economic variables were again statistically significant with p-values well below 0.05. The coefficient for "avg_D\_support" is 5.0, which means that every 1 percent increase in average generic ballot support translates to about a gain of 5 House seats for the Democrats. The coefficient for "pres_incumb" is -21, which means that if a Democrat currently holds the White House, Democrats are expected to lose an additional 21 House seats. These results are not too different from the vote share regression and fall in line with my expectations and the conventional wisdom. The adjusted R-squared in this case is 0.656, not too different than the vote share regression and definitely higher than the adjusted-R squared from the model from two weeks ago (0.549). Just like my vote share model, this model also arguably has good in-sample fit.
+
+# Out-of-sample Testing
+
+# Final Prediction
 
 ```{r 2022 vote share prediction}
 ## 2022 Dem vote share prediction
