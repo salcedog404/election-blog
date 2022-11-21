@@ -1,0 +1,124 @@
+---
+title: "Assessing our models"
+author: "Kiara Hernandez"
+date: \today
+institute: Harvard University
+fontsize: 10pt
+output:
+ beamer_presentation:
+    keep_tex: true
+    theme: metropolis
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: zenburn
+    incremental: false
+header-includes:
+  \setbeamercolor{frametitle}{bg=purple}
+  \hypersetup{colorlinks,citecolor=orange,filecolor=red,linkcolor=brown,urlcolor=blue}
+subtitle: 'Gov 1347: Election Analytics'
+---
+
+## Today's agenda
+
+1. \textcolor{purple}{Cocktail party simulation}: Election (hot) takes pt.2
+
+2. How did the **538** and **The Economist** models do?
+
+3. \textcolor{purple}{Breakout room exercise}: Evaluate your prediction models with a like-minded friend
+
+## Cocktail party simulation: Election (hot) takes pt.2
+
+\centering
+\large
+
+*Share one \textcolor{purple}{interesting/surprising/memorable/confusing} observation about the 2022 election!*
+
+* It can be related to \underline{any aspect of this election}
+* It does not have to be about predictions and their accuracy
+
+## How did the 538 and Economist model do?
+
+\centering
+
+`Dem predicted (forecast) - Dem actual (observed)`
+
+
+ |                               | **\textcolor{blue}{FiveThirtyEight}** | **\textcolor{blue}{The Economist}** |
+ |:-----------------------------:|:-------------------------------------:|:-----------------------------------:|
+ | National 2 party vote share   |       -0.34                           |      2.537                          |
+ | National seat share           |        -7                             |          -3                         |
+ | RMSE (district, pv2p)         |      3.99                             |          3.39                       |
+ | Brier score (district)        |      0.032                            |      0.035                          |
+ | Classification accuracy       |     95                                |        96                           |
+
+## In which districts did we see (systematic) error?
+
+\centering
+
+ |                               | **\textcolor{blue}{FiveThirtyEight}** | **\textcolor{blue}{The Economist}** |
+ |:-----------------------------:|:-------------------------------------:|:-----------------------------------:|
+ | Districts missed              |"WA-3"  "VA-2"  "RI-2"  "PA-7"  "PA-17"| "AZ-1"  "CA-13" "CA-22" "CA-27"     |
+ |                               |"OR-6"  "OH-13" "OH-1"  "NY-4"  "NY-3" | "CO-8" "MS-2"  "NE-2"  "NM-2"       |    
+ |                               |"NY-22" "NY-19" "NY-17" "NV-3"         | "NV-1" "NY-17" "NY-19" "NY-22"      | 
+ |                               |"NV-1"  "NM-2"  "NH-1"  "MS-2"  "CO-8" | "NY-3" "NY-4" "OR-5"  "PA-8"        |
+ |                               |"CA-22" "CA-13" "AZ-1" "AK-1           | "RI-2"  "WA-3"                      |
+     
+\tiny
+- With your neighbor, briefly discuss potential reasons why these districts were called incorrectly.
+- What do these districts have in common? Would you expect these districts to be called incorrectly? Open 'district_error_538.csv' and 'district_error_economist.csv' to see how close the calls were (size of error)
+
+## How did the 538 and Economist model do?
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height=5, fig.width=10}
+library(ggplot2)
+library(tidyverse)
+
+economist <- read_csv("district_error_economist.csv")
+fivethirt <- read_csv("district_error_538.csv")
+
+par(mfrow=c(1,2))
+hist(economist$error, xlab="Dem predicted - Dem actual", main="The Economist")
+hist(fivethirt$error, xlab="Dem predicted - Dem actual", main="FiveThirtyEight")
+
+```
+
+## Some reflections on their forecasts: The Economist
+
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{morris.png}
+\end{figure}
+
+## Some reflections on their forecasts: 538
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{silver.png}
+\end{figure}
+
+\centering
+
+...and more on Twitter. During our last section, we'll talk about campaign reflections in more detail. 
+
+## Before moving on to the breakout room exercise... Next week,
+
+* Thanksgiving break so **NO lab sections** next week!
+* Reflection assignment due Tuesday 11/22 by 9pm
+
+## Breakout room: Evaluate your prediction models (30 minutes)
+
+**Groups** (based on \underline{a characteristic feature} of your forecast):
+<!-- EDIT THIS -->
+* \textcolor{purple}{Poll believers}
+* \textcolor{purple}{Inucumbency matter!} 
+* \textcolor{purple}{Expert ratings matter!} 
+* \textcolor{purple}{Everything matters!}
+
+1. **Describe** your models to each other. Which variables and models did you use? If you did a district-level prediction, which districts did you predict incorrectly? (5 min)
+
+2. Generate a number or a plot showing the **accuracy** of your model using datasets provided in the lab sessions folder. (10 min)
+
+3. Share the number or plot with each other. Share **hypotheses** for why your model was accurate/inaccurate. Give feedback on each others' hypotheses. (10 min)
+
+4. Discuss a (hypothetical) quantitative **test** for your hypotheses. (5 min)
+
+
+
+

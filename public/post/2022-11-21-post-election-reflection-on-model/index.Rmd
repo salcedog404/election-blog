@@ -1,0 +1,14 @@
+---
+title: Post-Election Reflection on Model
+author: Giovanni Salcedo
+date: '2022-11-21'
+slug: []
+categories: []
+tags: []
+summary: Placeholder
+---
+
+*This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+# Introduction
+
