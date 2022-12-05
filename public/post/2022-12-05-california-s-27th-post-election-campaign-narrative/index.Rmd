@@ -1,0 +1,13 @@
+---
+title: California's 27th - Post-election Campaign Narrative
+author: Giovanni Salcedo
+date: '2022-12-05'
+slug: []
+categories: []
+tags: []
+summary: In my final post, I break down what happened in the election that was the tipping point for Republicans gaining control of the House in the 2022 midterms.
+---
+
+*This blog is part of a series for Gov 1347: Election Analytics, a course at [Harvard University](https://www.harvard.edu/) taught by Professor [Ryan D. Enos](http://ryandenos.com/)*.
+
+# Introduction
