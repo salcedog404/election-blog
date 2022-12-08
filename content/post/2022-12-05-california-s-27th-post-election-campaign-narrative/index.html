@@ -13,8 +13,8 @@ summary: In my final post, I break down what happened in the election that was t
 <p><em>This blog is part of a series for Gov 1347: Election Analytics, a course at <a href="https://www.harvard.edu/">Harvard University</a> taught by Professor <a href="http://ryandenos.com/">Ryan D. Enos</a></em>.</p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Since my last post about two weeks ago, more votes have been counted, and all House races have been called by the Associated Press except for Colorado’s 3rd district, <a href="https://www.cpr.org/2022/12/01/state-orders-recount-boebert-frisch-race-district-3/">which is heading to a recount</a> because incumbent Republican Rep. Lauren Boebert leads by only 550 votes, though the recount is widely expected to not change the outcome. Thus, Republicans are set to win 222 House seats in total while Democrats will have 213, a very thin five-seat majority for Republicans.</p>
-<p>But the race that <a href="https://apnews.com/article/house-control-republicans-2022-election-explained-947add904c9372b99869773332898076">first gave Republicans the 218 seats</a> needed to officially lock in the majority was decided in a district just north of Los Angeles, California. The incumbent Rep. Mike Garcia, a Republican, managed to fend off Democratic challenger Christy Smith for the third time in a row since 2020, winning 53.2% of the vote to Smith’s 46.8% <a href="https://www.nytimes.com/interactive/2022/11/08/us/elections/results-california-us-house-district-27.html">as of November 29</a>. As I’ll show later on, Garcia did better than the fundamentals of his district, the polls, and forecasts suggested he should have done.</p>
+<p>Since my last post about two weeks ago, more votes have been counted, and all House races have been called by the Associated Press except for Colorado’s 3rd district, <a href="https://www.cpr.org/2022/12/01/state-orders-recount-boebert-frisch-race-district-3/">which is heading to a recount</a> because incumbent Republican Rep. Lauren Boebert leads by only 551 votes, though the recount is widely expected to not change the outcome. Thus, Republicans are set to win 222 House seats in total while Democrats will have 213, a very thin five-seat majority for Republicans.</p>
+<p>But the race that <a href="https://apnews.com/article/house-control-republicans-2022-election-explained-947add904c9372b99869773332898076">first gave Republicans the 218 seats</a> needed to officially lock in the majority was decided in a district just north of Los Angeles, California. The incumbent Rep. Mike Garcia, a Republican, managed to fend off Democratic challenger Christy Smith for the third time in a row since 2020, winning 53.2% of the vote to Smith’s 46.8% <a href="https://www.nytimes.com/interactive/2022/11/08/us/elections/results-california-us-house-district-27.html">as of December 6</a>. As I’ll show later on, Garcia did better than the fundamentals of his district, the polls, and forecasts suggested he should have done.</p>
 <p>In a year where Democrats for the most part defied political gravity and significantly minimized their losses in a very unfavorable midterm year, how did Garcia do <em>better</em> than his November 2020 race, when he was reelected by just 333 votes? Even though by election day most forecasts and expert predictions gave just the slightest advantage to Garcia, why did he still manage to win by over 6 points in a Democratic-leaning district?</p>
 </div>
 <div id="a-brief-overview-of-ca-27" class="section level1">
@@ -22,5 +22,116 @@ summary: In my final post, I break down what happened in the election that was t
 <p>Before redistricting changed many district boundaries and made my work and analysis much more annoying, the old CA-25 covered most of the land that is now covered by CA-27. Today, CA-27 covers all of Santa Clarita, Lancaster, and Palmdale in southern California. The most major change from the old CA-25 map is that the district no longer covers the Republican-heavy Simi Valley, shifting the political lean of the district towards the Democrats enough that <a href="https://www.nytimes.com/interactive/2022/11/08/us/elections/results-california-us-house-district-27.html">Garcia himself complained about the decision</a>, which was made by a nonpartisan commission.</p>
 <p>Unfortunately, there is no updated demographic info for the new CA-27 specifically, but there is data from the 2020 census for the old CA-25 map which has very similar boundaries either way. <a href="https://ballotpedia.org/California%27s_25th_Congressional_District">According to Ballotpedia</a>, the old CA-25 had a population of 753,744. The racial breakdown was 43.7% White, 8.8% Asian, 8.4% Black, 1.4% Native American, and 0.2% Pacific Islander, and 42.1% of the population was ethnically Hispanic. The median household income in the old CA-25 was $83,267, higher than the <a href="https://www.census.gov/library/publications/2022/demo/p60-276.html">2020 national median</a> of $71,186, and the college graduation rate was 28.7%.</p>
 <p>What’s most significant about this district in terms of its demographics comes from its party registration numbers. <a href="https://calmatters.org/california-voter-guide-2022/us-house/house-races/#hot-district-27">Of the registered voters in the new CA-27 map</a>, 41.7% are Democrats, 29.2% are Republicans, and 21.6% are registered as having no party preference. The Cook PVI, which measures how strongly a district leans towards one party, for this district is <a href="https://www.cookpolitical.com/cook-pvi/2022-partisan-voting-index/district-map-and-list">D+4</a>, meaning it performed about four points more Democratic in the two-party vote share in the previous two presidential elections than the nation as a whole. While certainly nowhere near a slam-dunk Democratic district, the demographics here somewhat favor Democrats over Republicans, making Garcia’s continued success in this district quite interesting.</p>
-<p>In 2016 and before, the district (CA-25) was a GOP stronghold, but in 2018, Democrat Katie Hill flipped the seat blue with 54.4% of the vote, riding the blue wave of the midterm elections that year. Nevertheless, Hill’s resignation following a scandal opened up the seat, with a special election taking place early in 2020. In that election, Mike Garcia beat Christy Smith with 54.9% of the vote to her 45.1%, a flipped image result of 2018. As I discussed above, Garcia faced a much tougher challenge in the November presidential election to hold his seat, but he held on by the slimmest of margins. Now, he will represent CA-27 for two years, likely running for reelection in the 2024 election.</p>
+<p>In 2016 and before, the district (CA-25) was a GOP stronghold, but <a href="https://www.nytimes.com/elections/results/california-house-district-25">in 2018</a>, Democrat Katie Hill flipped the seat blue with 54.4% of the vote, riding the blue wave of the midterm elections that year. Nevertheless, Hill’s resignation in 2019 following a scandal opened up the seat, with a special election taking place early in 2020. <a href="https://www.nytimes.com/interactive/2020/05/12/us/elections/results-california-house-district-25-special-general-election.html">In that election</a>, Mike Garcia beat Christy Smith with 54.9% of the vote to her 45.1%, basically a flipped image of 2018. As I discussed above, Garcia faced a much tougher challenge in the November presidential election to hold his seat, but he held on by the slimmest of margins. Now, he will represent CA-27 for two years, likely running for reelection in the 2024 election.</p>
+</div>
+<div id="how-predictions-performed" class="section level1">
+<h1>How Predictions Performed</h1>
+<div id="polls" class="section level2">
+<h2>Polls</h2>
+<p><img src="images/Screenshot%202022-12-06%20at%201.57.51%20PM.png" /></p>
+<p>Surprisingly, almost no polling existed for this race this year. Considering this race was closely watched and contested, I would have thought there would be a lot of polls, but I could only find a total of three polls listed on <a href="https://projects.fivethirtyeight.com/2022-election-forecast/house/california/27/">FiveThirtyEight’s forecast page</a> for this district, all shown in the above screenshot. As you can see, the few polls that we do have were all over the place, which made it tough to rely on polls for predicting this district. The Remington poll was the closest to the actual result (Garcia +6.4), underestimating Garcia’s margin by about 4.4 percent.</p>
+</div>
+<div id="expert-ratings" class="section level2">
+<h2>Expert Ratings</h2>
+<table>
+<colgroup>
+<col width="77%" />
+<col width="22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Expert</th>
+<th align="center">Final Rating (Date)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><a href="https://www.cookpolitical.com/ratings/house-race-ratings">Cook Political Report</a></td>
+<td align="center">Toss Up (November 7)</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://www.270towin.com/2022-house-election/index_show_table.php?map_title=crystal-ball-2022-house-forecast">Sabato’s Crystal Ball</a></td>
+<td align="center">Lean Republican (November 7)</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://insideelections.com/ratings/house">Inside Elections</a></td>
+<td align="center">Tilt Republican (November 3)</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://www.politico.com/2022-election/race-forecasts-ratings-and-predictions/california/house/district-27/">Politico</a></td>
+<td align="center">Lean Republican (October 26)</td>
+</tr>
+</tbody>
+</table>
+<p>As for expert ratings - which don’t predict vote shares but indicate which party, if any, has an advantage in a race and how strong that advantage is - most experts (the major ones listed above) except for the Cook Political Report predicted that the race slightly favored Republicans. Garcia’s win of 6.4 points arguably is in line with the predicitons, as Garcia was favored but not heavily favored, and the race was still close enough that Smith still had a realistic chance of winning.</p>
+</div>
+<div id="election-forecasts" class="section level2">
+<h2>Election Forecasts</h2>
+<table style="width:100%;">
+<colgroup>
+<col width="60%" />
+<col width="19%" />
+<col width="19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Model</th>
+<th align="center">Chances of Winning Seat</th>
+<th align="center">Popular Vote</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><a href="https://projects.fivethirtyeight.com/2022-election-forecast/house/california/27/">FiveThirtyEight “Deluxe”</a></td>
+<td align="center">63% Garcia</td>
+<td align="center">51.0% Garcia - 49.0% Smith</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://projects.fivethirtyeight.com/2022-election-forecast/house/california/27/">FiveThirtyEight “Classic”</a></td>
+<td align="center">62% Smith</td>
+<td align="center">50.9% Smith - 49.1% Garcia</td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://projects.fivethirtyeight.com/2022-election-forecast/house/california/27/">FiveThirtyEight “Lite”</a></td>
+<td align="center">53% Garcia</td>
+<td align="center">50.3% Garcia - 49.7% Smith</td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://www.economist.com/interactive/us-midterms-2022/forecast/house/california#27">The Economist</a></td>
+<td align="center">65% Smith</td>
+<td align="center">51.3% Smith - 48.7% Garcia</td>
+</tr>
+</tbody>
+</table>
+<p>The two forecasters I compared (and that we compared in class) were FiveThirtyEight and the Economist. FiveThirtyEight released three versions of their model this cycle: “Lite” is based on polls only, “Classic” is based on polls and fundamentals, and “Deluxe” is based on everything in the “Classic” model plus expert ratings (specifically Cook, Sabato, and IE). Out of all these models, the closest to the actual outcome was FiveThirtyEight’s “Deluxe” model, which was 2.2 points off in the popular vote share, while the furthest was the Economist model, which was 4.5 points off (still not too bad, especially since they only gave Smith a 65% chance of victory!).</p>
+</div>
+</div>
+<div id="the-campaigns" class="section level1">
+<h1>The Campaigns</h1>
+<p>What happened? How did Garcia manage to do better than the polls and experts predicted in a now-Democratic-leaning district? The answer largely boils down to how each candidate ran their campaigns and the issues they ran on, as well as their perceived quality and fit as candidates for the district which affected their fundraising.</p>
+<p>Regarding campaigns and issues, how <em>should</em> a candidate run their campaign to win, especially when they are the underdog in a district? One theory from the literature comes from Lynn Vavreck’s book <em>The Message Matters</em> (2009). According to Vavreck, if candidates run the “right” campaign, they can overcome other obstacles to their success like fundamentals. In the third chapter of her book, she lays out her theory of “clarifying” and “insurgent campaigns.</p>
+<ul>
+<li><p>A “clarifying” campaign is run by incumbents in a good economy or challengers in a bad economy so the candidate focuses as much as possible on the economy, especially more than the opponent, so that the good (or bad) economy is associated with the incumbent and his or her policies.</p></li>
+<li><p>An “insurgent” campaign is run by incumbents in a bad economy or challengers in a good economy so that the candidate avoids talking about the economy as much as possible, focusing on other issues where the opposing candidate may have unpopular positions.</p></li>
+</ul>
+<div id="garcia" class="section level2">
+<h2>Garcia</h2>
+<p>As a Republican running in a Democratic-leaning district, Garcia needed to run on the right issues that would resonate most with the people in his district to overcome He was an incumbent for his seat but a challenger as a part of the Republicans trying to win the House majority, and the economy is not doing too well arguably, so he was considered a clarifying candidate under Vavreck’s theory.</p>
+<p>Because he was a clarifying candidate, running on how badly the economy is doing was likely the best strategy - and this is exactly what he did. On his <a href="https://www.electmikegarcia.com/issues/">campaign website issues page</a>, the first three issues he describes - “economy and jobs”, “taxes”, and “inflation and cost of living” - are all economic issues that voters in his district likely really cared about. In particular, as one <a href="https://www.latimes.com/politics/story/2022-11-16/2022-california-midterm-election-mike-garcia-christy-smith-congress-los-angeles-county">Los Angeles Times article</a> noted, the residents of his district were especially frustrated with “climbing gas prices and the high cost of living,” which Garcia played into, giving him the advantage in the race.</p>
+<p>But running on the poor performance of the economy was probably not the only reason Garcia won, though it was definitely a major one. Garcia’s military background as a former Navy pilot and his focus on veterans’ issues <a href="https://www.latimes.com/politics/story/2022-11-15/smith-faults-national-democrats-for-her-likely-loss-against-gop-rep-mike-garcia">played extremely well</a> in a district with strong ties to the military and the aerospace industry. He touted his Navy pilot credentials everywhere as much as he could, from making it a part of <a href="https://commons.wikimedia.org/wiki/File:Mike_Garcia_congressional_campaign_logo.png">his campaign logo</a> to expressing it in his two major campaign ads <a href="https://www.electmikegarcia.com/garcia-campaign-releases-first-ad-of-general-election/">“Record”</a> and <a href="https://www.electmikegarcia.com/garcia-campaign-releases-second-ad-of-general-election/">“Future”</a> (both are similar and focus on economic issues and other Republican priorities like crime).</p>
+</div>
+<div id="smith" class="section level2">
+<h2>Smith</h2>
+<p>As a Democrat who came within just a few hundred votes of winning this seat in 2020, Smith had a good chance of being able to come back and win it two years later in an election that did not come with a much-anticipated red wave. Smith mainly ran as an insurgent candidate, focusing less on the economy and more other major issues like abortion, healthcare, and climate change (as can be seen on her <a href="https://www.christyforcongress.org/priorities">campaign website issues page</a>). With the overturning of Roe v. Wade in the summer, Democrats nationally got a major boost since <a href="https://www.brookings.edu/blog/fixgov/2022/11/10/it-wasnt-just-the-economy-stupid-it-was-abortion/">abortion became one of voters’ most important issues in the election</a>, so it makes a lot of sense that Smith focused on her pro-choice stance, <a href="https://youtu.be/5WWwCKfdqW8">like in this ad</a>. As the challenger, she ran a much more negative campaign, blasting Garcia for his <a href="https://youtu.be/5WWwCKfdqW8">support of a national abortion ban</a> and for <a href="https://youtu.be/sdTyCXUp8r4">being corrupt</a>.</p>
+<p>So what went wrong? If you ask Smith herself, she blames the fact that her party did not provide her campaign enough attention or resources. During the primary, national Democrats <a href="https://about.bgov.com/news/democrats-look-to-flip-california-seat-but-differ-on-candidate/">were divided</a> on whether to support her for the third time or her primary opponent Quaye Quartey, whom some Democrats argued would be a stronger candidate since he is a Black veteran and small business owner with an immigrant father, very similar to Garcia’s background. Smith easily won her primary, but national Democrats did not rally around her or provide her much financial support, <a href="https://www.latimes.com/politics/story/2022-11-15/smith-faults-national-democrats-for-her-likely-loss-against-gop-rep-mike-garcia">citing the extremely high cost of the Los Angeles media market</a> as one reason. In fact, Garcia significantly out raised her, <a href="https://calmatters.org/california-voter-guide-2022/us-house/house-races/#hot-district-27">raising $6.6 million</a> compared to her $3.6 million.</p>
+</div>
+</div>
+<div id="final-words" class="section level1">
+<h1>Final Words</h1>
+<p>CA-27 remains in the hands of Republicans for another two years, but Democrats will have another chance to unseat Garcia in 2024. Whichever Democrat decides to run will have the tough job of unseating an incumbent, but the district compared to CA-25 is bluer, which did not help Smith but may help future candidates. This blog post highlights just how important not only running on the right issues but also running the right <em>candidate</em> is for winning competitive districts like these. Garcia perceived quality as a candidate helped him do better than what polls and experts believed he would do, but he did not win in a blowout. Therefore, if Democrats want to take back this seat, they will likely need to look for a candidate (maybe revisit running Quartey?) that has a background that resonates with the district, especially someone who grew up there like Garcia or lived there a long time, and runs on popular issues, ideally those relevant to the district as well.</p>
+<p>All in all - candidate quality matters! It’s very possible Smith would have won with more money from the national Democratic Party, but running a better candidate that voters in CA-27 relate to more will likely be a better strategy for 2024.</p>
+</div>
+<div id="sources-not-linked" class="section level1">
+<h1>Sources Not Linked</h1>
+<p>Lynn Vavreck. <em>The message matters: the economy and presidential campaigns</em>. Princeton University Press, 2009. <a href="https://hollis.harvard.edu/primo-explore/fulldisplay?docid=TN_cdi_askewsholts_vlebooks_9781400830480&amp;context=PC&amp;vid=HVD2&amp;search_scope=everything&amp;tab=everything&amp;lang=en_US">URL.</a></p>
 </div>
